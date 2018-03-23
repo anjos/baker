@@ -1,0 +1,35 @@
+{% set name = "restic" %}
+{% set version = "0.8.3" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}_{{ version }}_linux_amd64.bz2  # [linux and x86_64]
+  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}_{{ version }}_darwin_amd64.bz2  # [osx and x86_64]
+  sha256: 1e9aca80c4f4e263c72a83d4333a9dac0e24b24e1fe11a8dc1d9b38d77883705  # [linux and x86_64]
+  sha256: 0ebaf56b7fe452a53e760b44bfa69331bb6b03dda5b538b69a5b8642e12a8b41  # [osx and x86_64]
+  fn: restic.bz2
+
+requirements:
+  build:
+    - bzip2
+
+build:
+  number: 0
+
+test:
+  commands:
+    - restic help
+    - restic version
+
+about:
+  home: https://restic.net
+  license: BSD 2-Clause
+  license_family: BSD
+  summary: 'Fast, secure, efficient backup program'
+
+extra:
+  recipe-maintainers:
+    - anjos

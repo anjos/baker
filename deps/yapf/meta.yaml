@@ -1,0 +1,43 @@
+{% set version = "0.20.2" %}
+
+package:
+  name: yapf
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/y/yapf/yapf-{{ version }}.tar.gz
+  md5: 10d44a85bbedc2e573ceca9fc46f40ad
+
+build:
+  number: 0
+  preserve_egg_dir: True
+  entry_points:
+    - yapf = yapf:run_main
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+
+test:
+  requires:
+    - nose
+
+  imports:
+    - yapf
+
+  commands:
+    - nosetests yapftests
+
+about:
+  home: https://github.com/google/yapf
+  license: Apache-2.0
+  summary: 'A formatter for Python code'
+
+extra:
+  recipe-maintainers:
+    - anjos

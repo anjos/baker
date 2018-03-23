@@ -1,0 +1,21 @@
+diff --git a/b2/sync/folder.py b/b2/sync/folder.py
+index 2497b92..b1756f5 100644
+--- a/b2/sync/folder.py
++++ b/b2/sync/folder.py
+@@ -11,6 +11,7 @@
+ from abc import ABCMeta, abstractmethod
+ import os
+ import sys
++import stat
+ 
+ import six
+ 
+@@ -158,7 +159,7 @@ class LocalFolder(AbstractFolder):
+             if not os.path.exists(local_path):
+                 if reporter is not None:
+                     reporter.local_access_error(local_path)
+-            elif not os.access(local_path, os.R_OK):
++            elif not os.stat(local_path).st_mode & (stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH):
+                 if reporter is not None:
+                     reporter.local_permission_error(local_path)
+             else:

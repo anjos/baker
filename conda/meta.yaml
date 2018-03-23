@@ -1,0 +1,44 @@
+{% set name="backuper" %}
+{% set version="1.0.0b0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+  entry_points:
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - docopt
+    - six
+    - restic
+    - b2
+
+test:
+  imports:
+    - {{ name }}
+
+  requires:
+    - nose
+    - coverage
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/anjos/backuper
+  license: GPLv3
+  summary: Utilities for backing-up my QNAP on BackBlaze's B2
+  license_family: GPL

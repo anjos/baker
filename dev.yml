@@ -1,0 +1,15 @@
+name: b2-dev
+channels:
+- https://www.idiap.ch/software/bob/conda/label/beta
+- https://www.idiap.ch/software/bob/conda
+- anjos
+- defaults
+dependencies:
+- python=3.6
+- six
+- docopt
+- b2
+- restic
+- ipdb
+- bob.buildout
+- mr.developer
