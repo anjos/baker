@@ -1,101 +1,62 @@
 .. image:: https://travis-ci.org/anjos/backuper.svg?branch=master
    :target: https://travis-ci.org/anjos/backuper
+.. image:: https://img.shields.io/docker/pulls/anjos/backuper.svg
+   :target: https://hub.docker.com/r/anjos/backuper/
 
-----------------------------------------------------------------------
- The Backuper - Utilities for Backing-Up my QNAS folders on BackBlaze
-----------------------------------------------------------------------
+----------
+ Backuper
+----------
 
 A bunch of utilities to backup my QNAS folders on BackBlace B2 Buckets. It
 provides ways to upload, list, delete and retrieve files from the service.
 
 
-Install
-=======
+Installation
+------------
 
-Use the Conda_ package to install the backuper and all of its dependencies::
+I advise you to install a Conda_-based environment for deployment with this
+command line::
 
-  $ conda create --override-channels -c anjos -c defaults -n backuper python=3.6 backuper
+  $ conda create --override-channels -c anjos -c defaults -n backuper python=x.y backuper
+
+Where ``x.y`` can be either ``2.7`` or ``3.6``. Once the environment is
+installed, activate it to be able to call binaries::
+
   $ source activate backuper
 
 
-API Keys and Passwords
-----------------------
-
-For some of the functionality, you'll need to setup API keys that will be used
-to contact BackBlaze. You may pass the keys everytime you use one of the
-applications bundled or permanently set it up on your account and let the apps
-find it. The search order is the following:
-
-1. If a file named ``.backuperrc`` exists on the current directory, then it is
-   loaded and it should contain a variable named ``tmdb`` (or ``tvdb``) inside
-   a section named ``apikeys``, with the value of your API key
-2. If a file named ``.backuperrc`` exists on your home directory and none exist
-   on your current directory, than that one is use instead.
-3. If none of the above exist and you don't pass an API key via command-line
-   parameters, then an error is produced and the application will stop.
-
-The syntax of the ``.backuperrc`` file is simple, following a Windows
-INI-style syntax::
-
-  [apikeys]
-  amazon = 1234567890abcdef123456
-
-  [passwords]
-  Name1 = abcdef
-  Name2 = 123456
-
-
 Usage
-=====
+-----
 
-There are various utilities you may use for backing-up, listing and erasing
-content from the Amazon service.
+There is a single program that you can launch as a daemon on your system::
 
+  $ ./bin/backup --help
 
-Backing-up
-----------
-
-To backup, select one or multiple local source directories and an Amazon
-Glacier volume. The contents of the local source directories will be backed-up
-on the remote server. An encryption pass
-
-
-Listing
--------
-
-You can list the file contents of a given volume like this:
-
-
-
-Deleting
---------
-
-To delete all contents of a volume and remove it, execute the following
-command:
-
-
+And a complete help message will be displayed.
 
 
 Development
-===========
+-----------
 
-Here are instructions if you wish to change any part of this library.
+I advise you to install a Conda_-based environment for development with this
+command line::
+
+  $ conda env create -f dev.yml
 
 
 Build
------
+=====
 
 To build the project and make it ready to run, do::
 
-  $ conda env create --force -f dev.yml
   $ source activate backuper-dev
   $ buildout
 
-This command should leave you with a functional development environment.
+This command should leave you with a functional environment.
 
 
 Testing
--------
+=======
 
 To test the package, run the following::
 
@@ -112,7 +73,9 @@ prepare::
 
 Then, you can build dependencies one by one, in order::
 
-  $ for p in deps/rsa deps/s3transfer deps/botocore deps/awscli deps/ipdb deps/zc.buildout; do conda build $p; done
+  $ vi ./scripts/conda-build-all.sh #comment/uncomment what to compile
+  $ ./scripts/conda-build-all.sh
+
 
 Anaconda Uploads
 ================
@@ -122,8 +85,61 @@ everytime), do::
 
   $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/noarch/{rsa,s3transfer,botocore,awscli,ipdb,zc.buildout}-*.tar.bz2
+  $ anaconda upload <conda-bld>/*-64/restic-*.tar.bz2
+  $ anaconda upload <conda-bld>/*-64/{yapf,logfury,b2,schedule}-*.tar.bz2
+
+
+Docker Image Building
+=====================
+
+To build a readily deployable docker image, do::
+
+  $ docker build --rm -t anjos/backuper:latest .
+  $ #upload it like this:
+  $ docker push anjos/backuper:latest
+
+
+.. note::
+
+   Before running the above command, make sure to tag this package
+   appropriately and to build and deploy conda packages for such a release.
+   Also build the equivalent version-named container using ``-t
+   anjos/backuper:vX.Y.Z``.
+
+
+Deployment
+----------
+
+QNAP has a proprietary packaging format for native applications called QPKG_.
+While it allows one to create apps that are directly installable using QNAP's
+App Center, it also ties in the running environment (mostly libc's
+dependencies) for the current OS. This implies applications need to be
+re-packaged at every major OS release. It may also bring conflicts with Conda's
+default channel ABIs.
+
+Instead of doing so, I opted for a deployment based on Docker containers. The
+main advantages of this approach is that containers are (almost) OS independent
+and there is a huge source of information and resources for building container
+images on the internet.
+
+To deploy backuper, just download the released image at DockerHub_ and create a
+container through Container Station. The container starts the built-in
+``backup`` application that backups your folders based on command-line options
+and arguments. I typically just mount the directories to be backed up with
+suggestive names (set this in "Advanced Settings" -> "Shared folders"). The run
+command I typically use is this::
+
+  # choose entrypoint to be "backup"
+  -vv --email --username="your.username@gmail.com" --password="create-an-app-password-for-gmail"
+
+If you'd like to use Gmail for sending e-mails about latest activity, just make
+sure to set the ``--email`` flag and set your username and specific-app
+password (to avoid 2-factor authentication). ``backuper`` should handle this
+flawlessly. Other e-mail providers should also be reacheable in the same way.
 
 
 .. Place your references after this line
 .. _conda: http://conda.pydata.org/miniconda.html
+.. _mediainfo: https://mediaarea.net/en/MediaInfo
+.. _qpkg: https://wiki.qnap.com/wiki/QPKG_Development_Guidelines
+.. _dockerhub: https://hub.docker.com/r/anjos/backuper/

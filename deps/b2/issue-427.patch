@@ -1,21 +1,22 @@
-diff --git a/b2/sync/folder.py b/b2/sync/folder.py
-index 2497b92..b1756f5 100644
---- a/b2/sync/folder.py
-+++ b/b2/sync/folder.py
-@@ -11,6 +11,7 @@
- from abc import ABCMeta, abstractmethod
- import os
- import sys
-+import stat
+diff --git a/test/test_sync.py b/test/test_sync.py
+index 002f8ff..4cd8d4d 100644
+--- a/test/test_sync.py
++++ b/test/test_sync.py
+@@ -107,10 +107,13 @@ class TestLocalFolder(TestSync):
+     def test_invalid_permissions(self):
+         with TempDir() as tmpdir:
+             folder = self._prepare_folder(tmpdir, invalid_permissions=True)
+-            self.assertEqual(self.NAMES[1:], list(f.name for f in folder.all_files(self.reporter)))
+-            self.reporter.local_permission_error.assert_called_once_with(
+-                os.path.join(tmpdir, self.NAMES[0])
+-            )
++            if not os.access(os.path.join(tmpdir, self.NAMES[0]), os.R_OK):
++                self.assertEqual(self.NAMES[1:], list(f.name for f in folder.all_files(self.reporter)))
++                self.reporter.local_permission_error.assert_called_once_with(
++                    os.path.join(tmpdir, self.NAMES[0])
++                )
++            else:
++                self.assertEqual(self.NAMES, list(f.name for f in folder.all_files(self.reporter)))
  
- import six
- 
-@@ -158,7 +159,7 @@ class LocalFolder(AbstractFolder):
-             if not os.path.exists(local_path):
-                 if reporter is not None:
-                     reporter.local_access_error(local_path)
--            elif not os.access(local_path, os.R_OK):
-+            elif not os.stat(local_path).st_mode & (stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH):
-                 if reporter is not None:
-                     reporter.local_permission_error(local_path)
-             else:
+     def _check_file_filters_results(self, policies_manager, expected_scan_results):
+         with TempDir() as tmpdir:

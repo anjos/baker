@@ -1,0 +1,45 @@
+{% set version = "0.5.0" %}
+
+package:
+  name: schedule
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/s/schedule/schedule-{{ version }}.tar.gz
+  md5: 53fb2e550b2539264eeceb5d85e82759
+
+build:
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+
+test:
+  source_files:
+    - test_schedule.py
+
+  requires:
+    - nose
+    - mock
+
+  imports:
+    - schedule
+
+  commands:
+    - nosetests -sv test_schedule.py
+
+about:
+  home: https://github.com/dbader/schedule
+  license: MIT
+  summary: 'Job scheduling for humans'
+
+extra:
+  recipe-maintainers:
+    - anjos

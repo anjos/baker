@@ -10,6 +10,7 @@ dependencies:
 - docopt
 - b2
 - restic
+- schedule
 - ipdb
 - bob.buildout
 - mr.developer

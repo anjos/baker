@@ -11,7 +11,7 @@ source:
     - issue-427.patch  # affects test suite if run as root
 
 build:
-  number: 0
+  number: 1
   preserve_egg_dir: True
   entry_points:
     - b2 = b2.console_tool:main
@@ -46,7 +46,7 @@ test:
     - b2
 
   commands:
-    - nosetests test/test_*.py  # [osx]
+    - nosetests test/test_*.py
 
 about:
   home: https://github.com/Backblaze/B2_Command_Line_Tool
