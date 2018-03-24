@@ -1,5 +1,5 @@
-{% set name="backuper" %}
-{% set version="1.0.0b0" %}
+{% set name = 'baker' %}
+{% set version = load_setup_py_data()['version'] %}
 
 package:
   name: {{ name }}
@@ -24,7 +24,6 @@ requirements:
     - docopt
     - six
     - restic
-    - b2
 
 test:
   imports:
@@ -38,7 +37,7 @@ test:
     - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
 
 about:
-  home: https://github.com/anjos/backuper
+  home: https://github.com/anjos/baker
   license: GPLv3
   summary: Utilities for backing-up my QNAP on BackBlaze's B2
   license_family: GPL

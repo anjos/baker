@@ -5,10 +5,10 @@ from setuptools import setup, find_packages
 
 setup(
 
-    name='backuper',
+    name='baker',
     version='1.0.0b0',
     description="Utilities for backing-up my QNAP on BackBlaze's B2",
-    url='https://github.com/anjos/backuper',
+    url='https://github.com/anjos/baker',
     license="GPLv3",
     author='Andre Anjos',
     author_email='andre.dos.anjos@gmail.com',
@@ -26,7 +26,7 @@ setup(
 
     entry_points = {
       'console_scripts': [
-        'backup.py = backuper.scripts.backup:main',
+        'bake = baker.bake:main',
       ],
     },
 

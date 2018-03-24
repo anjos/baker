@@ -95,7 +95,7 @@ def main(user_input=None):
       )
 
   from .reporter import setup_logger
-  logger = setup_logger('backuper', args['--verbose'])
+  logger = setup_logger('baker', args['--verbose'])
 
   # do some commandline parsing
   directories, repositories = zip(*[k.split('|') for k in args['<config>']])
@@ -112,7 +112,7 @@ def main(user_input=None):
     assert os.path.exists(dire)
 
   # log
-  logger.info("Backuper version %s (running on %s)",
+  logger.info("Baker version %s (running on %s)",
       (completions['version'], args['--hostname']))
   for dire, repo in zip(directories, repositories):
     logger.info(" - (folder) %s -> %s (repo)", dire, repo)

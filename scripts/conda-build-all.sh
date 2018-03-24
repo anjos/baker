@@ -15,7 +15,7 @@ python_pkgs=()
 #python_pkgs+=('deps/logfury')
 #python_pkgs+=('deps/b2')
 python_pkgs+=('deps/schedule')
-#python_pkgs+=('conda') #backuper itself
+#python_pkgs+=('conda') #baker itself
 
 for p in "${simple_pkgs[@]}"; do
   conda build ${p}

@@ -33,8 +33,8 @@ class Email(object):
   def __init__(self, subject, body, hostname, sender, to):
 
     # get information from package and host, put on header
-    prefix = '[backuper-%s@%s] ' % \
-        (pkg_resources.require('popster')[0].version, hostname)
+    prefix = '[baker-%s@%s] ' % \
+        (pkg_resources.require('baker')[0].version, hostname)
 
     self.subject = prefix + subject
     self.body = body

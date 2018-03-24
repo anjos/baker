@@ -1,11 +1,11 @@
-.. image:: https://travis-ci.org/anjos/backuper.svg?branch=master
-   :target: https://travis-ci.org/anjos/backuper
-.. image:: https://img.shields.io/docker/pulls/anjos/backuper.svg
-   :target: https://hub.docker.com/r/anjos/backuper/
+.. image:: https://travis-ci.org/anjos/baker.svg?branch=master
+   :target: https://travis-ci.org/anjos/baker
+.. image:: https://img.shields.io/docker/pulls/anjos/baker.svg
+   :target: https://hub.docker.com/r/anjos/baker/
 
-----------
- Backuper
-----------
+-------
+ Baker
+-------
 
 A bunch of utilities to backup my QNAS folders on BackBlace B2 Buckets. It
 provides ways to upload, list, delete and retrieve files from the service.
@@ -17,12 +17,12 @@ Installation
 I advise you to install a Conda_-based environment for deployment with this
 command line::
 
-  $ conda create --override-channels -c anjos -c defaults -n backuper python=x.y backuper
+  $ conda create --override-channels -c anjos -c defaults -n baker python=x.y baker
 
 Where ``x.y`` can be either ``2.7`` or ``3.6``. Once the environment is
 installed, activate it to be able to call binaries::
 
-  $ source activate backuper
+  $ source activate baker
 
 
 Usage
@@ -30,7 +30,7 @@ Usage
 
 There is a single program that you can launch as a daemon on your system::
 
-  $ ./bin/backup --help
+  $ ./bin/bake --help
 
 And a complete help message will be displayed.
 
@@ -49,7 +49,7 @@ Build
 
 To build the project and make it ready to run, do::
 
-  $ source activate backuper-dev
+  $ source activate baker-dev
   $ buildout
 
 This command should leave you with a functional environment.
@@ -60,7 +60,7 @@ Testing
 
 To test the package, run the following::
 
-  $ ./bin/nosetests -sv --with-coverage --cover-package=backuper
+  $ ./bin/nosetests -sv --with-coverage --cover-package=baker
 
 
 Conda Builds
@@ -94,9 +94,9 @@ Docker Image Building
 
 To build a readily deployable docker image, do::
 
-  $ docker build --rm -t anjos/backuper:latest .
+  $ docker build --rm -t anjos/baker:latest .
   $ #upload it like this:
-  $ docker push anjos/backuper:latest
+  $ docker push anjos/baker:latest
 
 
 .. note::
@@ -104,7 +104,7 @@ To build a readily deployable docker image, do::
    Before running the above command, make sure to tag this package
    appropriately and to build and deploy conda packages for such a release.
    Also build the equivalent version-named container using ``-t
-   anjos/backuper:vX.Y.Z``.
+   anjos/baker:vX.Y.Z``.
 
 
 Deployment
@@ -122,19 +122,19 @@ main advantages of this approach is that containers are (almost) OS independent
 and there is a huge source of information and resources for building container
 images on the internet.
 
-To deploy backuper, just download the released image at DockerHub_ and create a
+To deploy baker, just download the released image at DockerHub_ and create a
 container through Container Station. The container starts the built-in
-``backup`` application that backups your folders based on command-line options
+``bake`` application that backups your folders based on command-line options
 and arguments. I typically just mount the directories to be backed up with
 suggestive names (set this in "Advanced Settings" -> "Shared folders"). The run
 command I typically use is this::
 
-  # choose entrypoint to be "backup"
+  # choose entrypoint to be backed-up
   -vv --email --username="your.username@gmail.com" --password="create-an-app-password-for-gmail"
 
 If you'd like to use Gmail for sending e-mails about latest activity, just make
 sure to set the ``--email`` flag and set your username and specific-app
-password (to avoid 2-factor authentication). ``backuper`` should handle this
+password (to avoid 2-factor authentication). ``baker`` should handle this
 flawlessly. Other e-mail providers should also be reacheable in the same way.
 
 
@@ -142,4 +142,4 @@ flawlessly. Other e-mail providers should also be reacheable in the same way.
 .. _conda: http://conda.pydata.org/miniconda.html
 .. _mediainfo: https://mediaarea.net/en/MediaInfo
 .. _qpkg: https://wiki.qnap.com/wiki/QPKG_Development_Guidelines
-.. _dockerhub: https://hub.docker.com/r/anjos/backuper/
+.. _dockerhub: https://hub.docker.com/r/anjos/baker/
