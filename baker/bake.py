@@ -10,10 +10,10 @@ Usage: %(prog)s [-v...] [options] <config> [<config> ...]
 
 Arguments:
 
-  <config>  A double composed of a local directory and a repository, separated by
-            a pipe '|' symbol. Example "/data|b2:data". This double indicates
-            that the local directory "/data" will be backed-up on the BackBlaze
-            B2 bucket called "data".
+  <config>  A double composed of a local directory and a repository, separated
+            by a pipe '|' symbol. Example "/data|b2:data". This double
+            indicates that the local directory "/data" will be backed-up on the
+            BackBlaze B2 bucket called "data".
 
 
 Options:
@@ -84,7 +84,7 @@ def main(user_input=None):
 
   completions = dict(
       prog=os.path.basename(sys.argv[0]),
-      version=pkg_resources.require('popster')[0].version,
+      version=pkg_resources.require('baker')[0].version,
       hostname=socket.gethostname(),
       )
 
@@ -100,7 +100,7 @@ def main(user_input=None):
   # do some commandline parsing
   directories, repositories = zip(*[k.split('|') for k in args['<config>']])
   keep_keys = ['last', 'hourly', 'daily', 'weekly', 'monthly', 'yearly']
-  keep = dict(zip(keep_keys, [int(k) for k in in args['--keep'].split('|')]))
+  keep = dict(zip(keep_keys, [int(k) for k in args['--keep'].split('|')]))
   args['--run-every'] = int(args['--run-every'])
 
   # check some variables
@@ -175,7 +175,7 @@ def main(user_input=None):
         if not overall_result: break
 
       if not overall_result: # there was a problem, report back
-
+        pass
 
   try:
     while True:

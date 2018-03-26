@@ -1,4 +1,4 @@
-name: b2-dev
+name: baker-dev
 channels:
 - https://www.idiap.ch/software/bob/conda/label/beta
 - https://www.idiap.ch/software/bob/conda
