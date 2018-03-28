@@ -5,6 +5,7 @@
 
 
 import os
+import six
 import sys
 import smtplib
 import pkg_resources
@@ -106,16 +107,65 @@ def setup_logger(name, verbosity):
   return logger
 
 
-class LoggingSaver(object):
+_INTERVALS = (
+    ('weeks', 604800),  # 60 * 60 * 24 * 7
+    ('days', 86400),    # 60 * 60 * 24
+    ('hours', 3600),    # 60 * 60
+    ('minutes', 60),
+    ('seconds', 1),
+    )
 
-  def __init__(self, logger):
-    self.logger = logger
-    self.buffer = StringIO()
+def human_time(seconds, granularity=2):
+  '''Returns a human readable time string like "1 day, 2 hours"'''
+
+  result = []
+
+  for name, count in _INTERVALS:
+    value = seconds // count
+    if value:
+      seconds -= value * count
+      if value == 1:
+        name = name.rstrip('s')
+      result.append("{} {}".format(value, name))
+    else:
+      # Add a blank if we're in the middle of other values
+      if len(result) > 0:
+        result.append(None)
+
+  if not result:
+    return '%.2f seconds' % seconds
+
+  return ', '.join([x for x in result[:granularity] if x is not None])
+
+
+class LogCapture(object):
+  '''Captures messages for a particular logger from the python logging service
+
+  Parameters:
+
+    name (str): The name of the base logger to capture messages from
+
+    level (int, Optional): The integer level to set the handler to
+
+  '''
+
+
+  def __init__(self, name, level=logging.DEBUG):
+
+    self.logger = logging.getLogger(name)
+    self.buffer = six.StringIO()
     self.handler = logging.StreamHandler(self.buffer)
+    self.handler.setLevel(level)
+
 
   def __enter__(self):
+
     self.logger.addHandler(self.handler)
+    return self.buffer
+
 
   def __exit__(self, et, ev, tb):
+
     self.logger.removeHandler(self.handler)
     self.handler.close()
+    self.buffer.seek(0) #make it ready for readout

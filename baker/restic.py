@@ -5,57 +5,20 @@
 
 
 import os
-import time
 import copy
-import subprocess
+import json
 
 import logging
 logger = logging.getLogger(__name__)
 
-
-def _which(env, program):
-  '''Pythonic version of the `which` command-line application'''
-
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program): return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file): return exe_file
-
-  return None
+from .utils import run_cmdline, which
 
 
-RESTIC_BIN = _which('restic')
+RESTIC_BIN = which('restic')
 logger.info('Using restic from `%s\'', RESTIC_BIN)
 
 
-def _human_time(seconds, granularity=2):
-  '''Returns a human readable time string like "1 day, 2 hours"'''
-
-  result = []
-
-  for name, count in intervals:
-    value = seconds // count
-    if value:
-      seconds -= value * count
-      if value == 1:
-        name = name.rstrip('s')
-      result.append("{} {}".format(value, name))
-    else:
-      # Add a blank if we're in the middle of other values
-      if len(result) > 0:
-        result.append(None)
-
-  return ', '.join([x for x in result[:granularity] if x is not None])
-
-
-def run_restic(global_options, subcmd, subcmd_options, password,
-    b2_account_id=None, b2_account_key=None):
+def run_restic(global_options, subcmd, subcmd_options, password=None):
   '''Runs restic on a contained environment, report output and status
 
 
@@ -71,13 +34,7 @@ def run_restic(global_options, subcmd, subcmd_options, password,
 
     subcmd_options (list): A list of subcommand specific options
 
-    password (str): The restic repository password
-
-    b2_account_id (str, Optional): The BackBlaze B2 account identifier. If set,
-      then setup B2_ACCOUNT_ID environment variable before calling restic.
-
-    b2_account_id (str, Optional): The BackBlaze B2 account key. If set,
-      then setup B2_ACCOUNT_KEY environment variable before calling restic.
+    password (str, Optional): The restic repository password
 
 
   Returns:
@@ -86,32 +43,53 @@ def run_restic(global_options, subcmd, subcmd_options, password,
 
   '''
 
+  assert RESTIC_BIN, "The executable `restic' must be available on your ${PATH}"
+
   env = copy.copy(os.environ)
-  env.setdefault('RESTIC_PASSWORD', password)
-  if b2_account_id: env.setdefault('B2_ACCOUNT_ID', b2_account_id)
-  if b2_account_key: env.setdefault('B2_ACCOUNT_KEY', b2_account_key)
+  if password: env.setdefault('RESTIC_PASSWORD', password)
 
-  cmd = [RESTIC] + global_options + subcmd + subcmd_options
+  cmd = [RESTIC_BIN] + global_options + [subcmd] + subcmd_options
 
-  logger.info('$ %s', ' '.join(cmd))
+  return run_cmdline(cmd, env)
 
-  start = time.time()
-  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-      env=env)
-  out, _ = p.communicate() #stderr is empty
-  total = time.time() - start
-  for k in out.split('\n'): logger.info(k)
 
-  logger.info('restic %s took %s', subcmd, _human_time(total))
+def _assert_b2_setup(repo):
+  '''Checks if B2 credentials are setup correctly'''
 
-  if p.returncode != 0:
-    logger.error('command exited with error state (%d)', p.returncode)
+  if repo.startswith('b2:'):
+    assert 'B2_ACCOUNT_ID' in os.environ, "You must setup ${B2_ACCOUNT_ID} " \
+        "to use a BackBlaze B2 repository"
+    assert 'B2_ACCOUNT_KEY' in os.environ, "You must setup ${B2_ACCOUNT_KEY}" \
+        " to use a BackBlaze B2 repository"
 
-  return p.returncode == 0
+
+def init(repository, global_options, password):
+  '''Initializes a restic repository
+
+  The repository may be local or sitting on a remote B2 bucket
+
+
+  Parameters:
+
+    repository (str): The restic repository that will hold the backup. This can
+      be either a local repository path or a BackBlaze B2 bucket name, duly
+      prefixed by ``b2:``.
+
+    global_options (list): A list of global options to pass to restic (like
+      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+      this will be included automatically
+
+    password (str): The restic repository password
+
+  '''
+
+  _assert_b2_setup(repository)
+  return run_restic(['--repo', repository] + global_options, 'init', [],
+      password)
 
 
 def backup(directory, repository, global_options, hostname, backup_options,
-    password, b2_account_id=None, b2_account_key=None):
+    password):
   '''Performs the backup
 
   This command executes ``restic backup`` for the provided local directory on
@@ -139,22 +117,14 @@ def backup(directory, repository, global_options, hostname, backup_options,
 
     password (str): The restic repository password
 
-    b2_account_id (str, Optional): The BackBlaze B2 account identifier. Must be
-      set if ``repository`` starts with ``b2:``
-
-    b2_account_key (str, Optional): The BackBlaze B2 key to use to run the
-      backup. This key must have access to the specified bucket.
-      set if ``repository`` starts with ``b2:``
-
   '''
 
+  _assert_b2_setup(repository)
   return run_restic(['--repo', repository] + global_options,
-      'backup', ['--hostname', hostname] + backup_options, password,
-      b2_account_id, b2_account_key)
+      'backup', ['--hostname', hostname] + backup_options + [directory], password)
 
 
-def forget(repository, global_options, hostname, prune, keep, password,
-    b2_account_id=None, b2_account_key=None):
+def forget(repository, global_options, hostname, prune, keep, password):
   '''Performs the backup
 
   This command executes ``restic forget`` for the provided local directory on
@@ -178,30 +148,23 @@ def forget(repository, global_options, hostname, prune, keep, password,
 
     keep (dict): A dictionary containing the number of snapshots to keep per
       category. Valid values are 'last', 'hourly', 'daily', 'weekly',
-      'monthly' and 'yearly'
+      'monthly' and 'yearly'. You may include all or just some of these.
 
     password (str): The restic repository password
 
-    b2_account_id (str, Optional): The BackBlaze B2 account identifier. Must be
-      set if ``repository`` starts with ``b2:``
-
-    b2_account_key (str, Optional): The BackBlaze B2 key to use to run the
-      backup. This key must have access to the specified bucket.
-      set if ``repository`` starts with ``b2:``
-
   '''
+
+  _assert_b2_setup(repository)
 
   options = ['--prune'] if prune else []
   for key in keep:
     options += ['--keep-%s' % key, str(keep[key])]
 
   return run_restic(['--repo', repository] + global_options,
-      'forget', ['--host', hostname] + options, password,
-      b2_account_id, b2_account_key)
+      'forget', ['--host', hostname] + options, password)
 
 
-def forget(repository, global_options, password, b2_account_id=None,
-    b2_account_key=None):
+def check(repository, global_options, password):
   '''Checks the sanity of a restic repository
 
   This procedure is recommended after each forget operation
@@ -219,23 +182,16 @@ def forget(repository, global_options, password, b2_account_id=None,
 
     password (str): The restic repository password
 
-    b2_account_id (str, Optional): The BackBlaze B2 account identifier. Must be
-      set if ``repository`` starts with ``b2:``
-
-    b2_account_key (str, Optional): The BackBlaze B2 key to use to run the
-      backup. This key must have access to the specified bucket.
-      set if ``repository`` starts with ``b2:``
-
   '''
 
+  _assert_b2_setup(repository)
+
   options = ['--check-unused']
-
   return run_restic(['--repo', repository] + global_options,
-      'check', options, password, b2_account_id, b2_account_key)
+      'check', options, password)
 
 
-def snapshots(repository, global_options, hostname, password,
-    b2_account_id=None, b2_account_key=None):
+def snapshots(repository, global_options, hostname, password):
   '''Lists current snapshots available
 
   Parameters:
@@ -252,15 +208,15 @@ def snapshots(repository, global_options, hostname, password,
 
     password (str): The restic repository password
 
-    b2_account_id (str, Optional): The BackBlaze B2 account identifier. Must be
-      set if ``repository`` starts with ``b2:``
 
-    b2_account_key (str, Optional): The BackBlaze B2 key to use to run the
-      backup. This key must have access to the specified bucket.
-      set if ``repository`` starts with ``b2:``
+  Returns:
+
+    list: A list of dictionaries with the properties of each snapshot following
+    the specifications
 
   '''
 
-  return run_restic(['--repo', repository] + global_options,
-      'snapshots', ['--host', hostname], password, b2_account_id,
-      b2_account_key)
+  _assert_b2_setup(repository)
+  output = run_restic(['--repo', repository, '--json'] + global_options,
+      'snapshots', ['--host', hostname], password)
+  return json.loads(output)

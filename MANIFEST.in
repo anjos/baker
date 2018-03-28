@@ -1,1 +1,2 @@
 include COPYING README.rst buildout.cfg dev.yml
+recursive-include baker/data *.txt
