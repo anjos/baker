@@ -52,15 +52,30 @@ def test_restic_backup():
   assert messages[-1].endswith('saved')
 
 
+def test_restic_check():
+
+  with TemporaryDirectory() as d:
+    restic.init(d, [], 'password')
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
+    out = restic.check(d, [], 'password')
+
+  messages = out.split('\n')[:-1] #removes last end-of-line
+  nose.tools.eq_(len(messages), 5)
+  nose.tools.eq_(messages[0], 'create exclusive lock for repository')
+  nose.tools.eq_(messages[1], 'load indexes')
+  nose.tools.eq_(messages[-1], 'no errors were found')
+
+
 def test_restic_snapshots():
 
   with TemporaryDirectory() as d:
     restic.init(d, [], 'password')
     restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
     data = restic.snapshots(d, ['--json'], 'hostname', 'password')
 
   # data is a list of dictionaries with the following fields
-  #   * time: The time the snapshot was taken
+  #   * time: The time the snapshot was taken (as a datetime.datetime obj)
   #   * tree: The snapshot tree identifier?
   #   * paths: List of paths backed-up on that snapshot
   #   * hostname: The name of the host
@@ -69,5 +84,24 @@ def test_restic_snapshots():
   #   * gid: The groud id for snapshot file
   #   * id: The snapshot identifier
   #   * short_id: A shortened version of ``id``
-  nose.tools.eq_(len(data), 1)
+  nose.tools.eq_(len(data), 2)
   nose.tools.eq_(data[0]['paths'], [SAMPLE_DIR])
+  nose.tools.eq_(data[0]['hostname'], 'hostname')
+  nose.tools.eq_(data[1]['paths'], [SAMPLE_DIR])
+  nose.tools.eq_(data[1]['hostname'], 'hostname')
+
+
+def test_restic_forget():
+
+  with TemporaryDirectory() as d:
+    restic.init(d, [], 'password')
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
+    data1 = restic.snapshots(d, ['--json'], 'hostname', 'password')
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
+    restic.forget(d, [], 'hostname', True, {'last': 1}, 'password')
+    data2 = restic.snapshots(d, ['--json'], 'hostname', 'password')
+
+  # there are 2 backups which are nearly identical
+  nose.tools.eq_(len(data2), 1)
+  nose.tools.eq_(data2[0]['parent'], data1[0]['id'])
+  assert data2[0]['id'] != data1[0]['id']

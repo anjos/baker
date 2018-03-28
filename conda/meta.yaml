@@ -35,7 +35,7 @@ test:
     - coverage
 
   commands:
-    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }} --exclude test_b2
 
 about:
   home: https://github.com/anjos/baker

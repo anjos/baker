@@ -7,6 +7,7 @@
 import os
 import copy
 import json
+import datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -217,6 +218,15 @@ def snapshots(repository, global_options, hostname, password):
   '''
 
   _assert_b2_setup(repository)
+
   output = run_restic(['--repo', repository, '--json'] + global_options,
       'snapshots', ['--host', hostname], password)
-  return json.loads(output)
+
+  data = json.loads(output)
+
+  # convert date/time representations for easier parsing
+  for k in data:
+    s = k['time'][:26] + k['time'][-6:].replace(':', '')
+    k['time'] = datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f%z')
+
+  return data
