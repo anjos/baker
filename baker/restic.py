@@ -226,7 +226,7 @@ def snapshots(repository, global_options, hostname, password):
 
   # convert date/time representations for easier parsing
   for k in data:
-    s = k['time'][:26] + k['time'][-6:].replace(':', '')
-    k['time'] = datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f%z')
+    s = k['time'][:24]
+    k['time'] = datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f')
 
   return data
