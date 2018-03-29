@@ -144,11 +144,30 @@ def create_bucket(name, tp='allPrivate'):
   Parameters:
 
     name (str): The name of the bucket to remove
-    tp (str, Optional): Either ``allPrivate`` or ``allPublic``
+    tp (str, Optional): Either ``allPrivate`` or ``allPublic``. Supported
+      values are described at
+      https://www.backblaze.com/b2/docs/b2_create_bucket.html
 
   '''
 
-  return run_b2(['create-bucket', name, tp])
+  # from: https://www.backblaze.com/b2/docs/lifecycle_rules.html
+  # check the end of the page for set recipes: here, we delete all
+  # files deleted by restic after a one day period. According to this thread:
+  # https://forum.restic.net/t/safe-to-change-b2-lifecycle-settings/59 it
+  # should work w/o issues and saves space overall. The rule here applies to
+  # all files on the bucket. Notice you can input many rules, so the
+  # commandline utility expects a list.
+  lifecycle_rules = [{
+      'daysFromHidingToDeleting': 1,
+      'daysFromUploadingToHiding': None,
+      'fileNamePrefix': ''
+      }]
+
+  return run_b2([
+    'create-bucket',
+    '--lifecycleRules', json.dumps(lifecycle_rules),
+    name, tp,
+    ])
 
 
 def list_buckets():
