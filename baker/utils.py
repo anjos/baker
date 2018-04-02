@@ -154,7 +154,7 @@ def run_cmdline(cmd, env=None):
     out += chunk
 
   if p.wait() != 0:
-    logger.error('Command output is:\n%s', out)
+    logger.error('Command output is:\n%s', out.decode())
     raise RuntimeError("command `%s' exited with error state (%d)" % \
         (' '.join(cmd), p.returncode))
 
