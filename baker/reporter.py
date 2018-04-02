@@ -25,6 +25,8 @@ class Email(object):
 
     body (str): The e-mail body
 
+		hostname (str): The string to use for hostname
+
     sender (str): The e-mail sender
 
     to (str): The e-mail receiver

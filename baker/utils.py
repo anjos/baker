@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import time
 import warnings
 import tempfile
@@ -129,27 +130,49 @@ def run_cmdline(cmd, env=None):
 
   Returns:
 
-    bool: ``True`` if the program returned 0 exit status (ran w/o problems)
+    str: The standard output and error of the command being executed
 
   '''
 
   if env is None: env = os.environ
 
-  logger.info('$ %s', ' '.join(cmd))
+  prefix = '$ %s' % ' '.join(cmd)
+  logger.debug(prefix)
+  sys.stdout.write(prefix + '\n')
 
   start = time.time()
+  out = b''
+
   p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
       env=env)
-  out, _ = p.communicate() #stderr is empty
-  total = time.time() - start
 
-  out = out.decode()
+  chunk_size = 1 << 13
+  for chunk in iter(lambda: p.stdout.read(chunk_size), b''):
+    sys.stdout.write(chunk.decode())
+    out += chunk
 
-  logger.info('command took %s', human_time(total))
-
-  if p.returncode != 0:
+  if p.wait() != 0:
     logger.error('Command output is:\n%s', out)
     raise RuntimeError("command `%s' exited with error state (%d)" % \
         (' '.join(cmd), p.returncode))
 
+  total = time.time() - start
+
+  suffix = 'command took %s' % human_time(total)
+  sys.stdout.write(suffix + '\n')
+  logger.debug(suffix)
+
+  out = out.decode()
+
   return out
+
+
+def get_size(start_path = '.'):
+  '''Returns the total size of contents of the provided directory'''
+
+  total_size = 0
+  for dirpath, dirnames, filenames in os.walk(start_path):
+    for f in filenames:
+      fp = os.path.join(dirpath, f)
+      total_size += os.path.getsize(fp)
+  return total_size

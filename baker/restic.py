@@ -16,7 +16,7 @@ from .utils import run_cmdline, which
 
 
 RESTIC_BIN = which('restic')
-logger.info('Using restic from `%s\'', RESTIC_BIN)
+logger.debug('Using restic from `%s\'', RESTIC_BIN)
 
 
 def run_restic(global_options, subcmd, subcmd_options, password=None):
@@ -62,6 +62,13 @@ def _assert_b2_setup(repo):
         "to use a BackBlaze B2 repository"
     assert 'B2_ACCOUNT_KEY' in os.environ, "You must setup ${B2_ACCOUNT_KEY}" \
         " to use a BackBlaze B2 repository"
+
+
+def version():
+  '''Returns the result of ``restic version``
+  '''
+
+  return run_restic([], 'version', [])
 
 
 def init(repository, global_options, password):

@@ -14,7 +14,7 @@ from .utils import run_cmdline, which, TemporaryDirectory
 
 
 B2_BIN = which('b2')
-logger.info('Using b2 from `%s\'', B2_BIN)
+logger.debug('Using b2 from `%s\'', B2_BIN)
 
 
 def run_b2(args):
@@ -34,6 +34,13 @@ def run_b2(args):
 
   assert B2_BIN, "The executable `b2' must be available on your ${PATH}"
   return run_cmdline([B2_BIN] + args)
+
+
+def version():
+  '''Returns the result of ``b2 version``
+  '''
+
+  return run_b2(['version'])
 
 
 def get_account_info():
@@ -113,6 +120,25 @@ def empty_bucket(name):
 
   with TemporaryDirectory() as d:
     return sync(name, d) #remove all contents
+
+
+def get_bucket(name):
+  '''Returns information about a BackBlaze B2 bucket
+
+
+  Parameters:
+
+    name (str): The name of the bucket to remove
+
+
+  Returns:
+
+    dict: With the JSON contents returned by the ``get-bucket`` command.
+
+  '''
+
+  # --showSize will include the size in version 1.1.0+
+  return json.loads(run_b2(['get-bucket', name]))
 
 
 def remove_bucket(name):

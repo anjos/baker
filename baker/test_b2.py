@@ -17,7 +17,10 @@ from . import restic
 
 
 TEST_BUCKET_NAME = 'baker-test-' + str(uuid.uuid4())[:8]
-SAMPLE_DIR = pkg_resources.resource_filename(__name__, 'data')
+SAMPLE_DIR1 = pkg_resources.resource_filename(__name__, os.path.join('data',
+  'dir1'))
+SAMPLE_DIR2 = pkg_resources.resource_filename(__name__, os.path.join('data',
+  'dir2'))
 
 
 def setup():
@@ -73,7 +76,7 @@ def test_list_bucket_contents():
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   # Syncs our test directory with the bucket
-  b2.sync(TEST_BUCKET_NAME, SAMPLE_DIR)
+  b2.sync(TEST_BUCKET_NAME, SAMPLE_DIR1)
 
   output = b2.bucket_contents(TEST_BUCKET_NAME)
   assert 'example.txt' in output
@@ -98,11 +101,11 @@ def test_restic_backup():
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
   restic.init(repo, [], 'password')
-  out = restic.backup(SAMPLE_DIR, repo, [], 'hostname', [], 'password')
+  out = restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 7)
-  assert messages[0] == ('scan [%s]' % SAMPLE_DIR)
+  assert messages[0] == ('scan [%s]' % SAMPLE_DIR1)
   assert messages[-1].startswith('snapshot')
   assert messages[-1].endswith('saved')
 
@@ -112,7 +115,7 @@ def test_restic_check():
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
   restic.init(repo, [], 'password')
-  restic.backup(SAMPLE_DIR, repo, [], 'hostname', [], 'password')
+  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
   out = restic.check(repo, [], 'password')
 
   messages = out.split('\n')[:-1] #removes last end-of-line
@@ -127,8 +130,8 @@ def test_restic_snapshots():
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
   restic.init(repo, [], 'password')
-  restic.backup(SAMPLE_DIR, repo, [], 'hostname', [], 'password')
-  restic.backup(SAMPLE_DIR, repo, [], 'hostname', [], 'password')
+  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
+  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
   data = restic.snapshots(repo, ['--json'], 'hostname', 'password')
 
   # data is a list of dictionaries with the following fields
@@ -142,9 +145,9 @@ def test_restic_snapshots():
   #   * id: The snapshot identifier
   #   * short_id: A shortened version of ``id``
   nose.tools.eq_(len(data), 2)
-  nose.tools.eq_(data[0]['paths'], [SAMPLE_DIR])
+  nose.tools.eq_(data[0]['paths'], [SAMPLE_DIR1])
   nose.tools.eq_(data[0]['hostname'], 'hostname')
-  nose.tools.eq_(data[1]['paths'], [SAMPLE_DIR])
+  nose.tools.eq_(data[1]['paths'], [SAMPLE_DIR1])
   nose.tools.eq_(data[1]['hostname'], 'hostname')
 
 
@@ -153,9 +156,9 @@ def test_restic_forget():
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
   restic.init(repo, [], 'password')
-  restic.backup(SAMPLE_DIR, repo, [], 'hostname', [], 'password')
+  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
   data1 = restic.snapshots(repo, ['--json'], 'hostname', 'password')
-  restic.backup(SAMPLE_DIR, repo, [], 'hostname', [], 'password')
+  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
   restic.forget(repo, [], 'hostname', True, {'last': 1}, 'password')
   data2 = restic.snapshots(repo, ['--json'], 'hostname', 'password')
 
