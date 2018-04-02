@@ -99,6 +99,15 @@ def test_init_multiple_local():
   assert messages2[-1].endswith('saved')
 
 
+def test_init_cmdline():
+
+  with TemporaryDirectory() as d, StdoutCapture() as buf:
+    retval = main(['-vv', 'init', '--overwrite', '--hostname=hostname',
+      'password', '%s|%s' % (SAMPLE_DIR1, d)])
+
+  nose.tools.eq_(retval, 0)
+  assert 'Successful initialization of' in buf.read()
+
 
 def test_update_local():
 
@@ -185,3 +194,15 @@ def test_update_error():
         {'last': 1}, period=None)
 
   assert 'ERROR during back-up' in buf.read()
+
+
+def test_update_cmdline():
+
+  with TemporaryDirectory() as d, StdoutCapture() as buf:
+    retval1 = main(['-vv', 'init', '--overwrite', '--hostname=hostname',
+      'password', '%s|%s' % (SAMPLE_DIR1, d)])
+    retval2 = main(['-vv', 'update', '--hostname=hostname',
+      '--keep=1|0|0|0|0|0', 'password', '%s|%s' % (SAMPLE_DIR1, d)])
+
+  nose.tools.eq_(retval2, 0)
+  assert 'Successful initialization of' in buf.read()

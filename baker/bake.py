@@ -66,7 +66,7 @@ Options:
                                always prune the restic repository
                                [default: 0|0|7|9|13|3]
   -d, --run-daily-at=<hour>    Runs the back-up job daily at the specified
-                               time [default: 1:00]
+                               time
   -o, --overwrite              During initialization of a new restic
                                repository, overwrites contents of an existing
                                directory in case any exist. Use this option
@@ -107,6 +107,8 @@ import traceback
 
 import logging
 logger = logging.getLogger(__name__)
+
+import schedule
 
 
 def _send_message(subject, body, hostname, email):
@@ -272,7 +274,7 @@ def init(configs, password, overwrite, hostname, email, b2):
         from .utils import get_size
         sizes.append(get_size(repo))
 
-    _send_success_email('initialized', configs, log, sizes, snaps, hostname,
+    _send_success_email('initialization', configs, log, sizes, snaps, hostname,
         email)
 
   except Exception as e:
@@ -358,10 +360,9 @@ def update(configs, password, hostname, email, b2, keep, period):
     logger.info('Scheduling backup job to run every day at %s', period)
     schedule.every().day.at(period).do(job)
 
-
   while True:
     schedule.run_pending()
-    time.sleep(600)
+    time.sleep(600) #checks every 10 minutes
 
 
 def main(user_input=None):
@@ -442,8 +443,12 @@ def main(user_input=None):
     logger.info("Only logging e-mails, **not** sending anything")
 
   if args['init']:
-    return init(config, args['<password>'], args['--overwrite'],
-        args['--hostname'], b2)
+    try:
+      init(config, args['<password>'], args['--overwrite'],
+          args['--hostname'], email, b2)
+    except Exception as e:
+      raise RuntimeError('Unexpected error was not properly handled: %s' % \
+          str(e))
 
   elif args['update']:
 
@@ -451,10 +456,14 @@ def main(user_input=None):
     keep = dict(zip(keep_keys, [int(k) for k in args['--keep'].split('|')]))
 
     logger.info("Snapshot storage strategy (--keep flags):")
-    for key, value in keep:
+    for key, value in keep.items():
       logger.info(' - %s: %d', key.capitalize(), value)
 
-    return update(config, args['<password>'], args['--hostname'], email, b2,
-        keep, args['--run-daily'])
+    try:
+      update(config, args['<password>'], args['--hostname'], email, b2,
+          keep, args['--run-daily-at'])
+    except Exception as e:
+      raise RuntimeError('Unexpected error was not properly handled: %s' % \
+          str(e))
 
   return 0
