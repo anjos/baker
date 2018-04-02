@@ -25,6 +25,7 @@ requirements:
     - six
     - restic
     - b2
+    - schedule
 
 test:
   imports:

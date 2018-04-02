@@ -22,6 +22,7 @@ setup(
       'setuptools',
       'docopt',
       'six',
+      'schedule',
       ],
 
     entry_points = {
