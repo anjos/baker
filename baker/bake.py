@@ -186,11 +186,15 @@ def _send_error_email(action, configs, log, trace, hostname, email):
     %(repo)s
     Here is the traceback information I collected:
 
+    ## START OF TRACE
     %(trace)s
+    ## END OF TRACE
 
     Here is some trace of the log to help you debugging:
 
+    ## START OF LOG
     %(log)s
+    ## END OF LOG
 
     That is it, have a good day!
 

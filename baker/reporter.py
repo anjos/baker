@@ -5,8 +5,8 @@
 
 
 import os
-import six
 import sys
+import six
 import smtplib
 import pkg_resources
 import email.mime.text
@@ -170,4 +170,34 @@ class LogCapture(object):
 
     self.logger.removeHandler(self.handler)
     self.handler.close()
+    self.buffer.seek(0) #make it ready for readout
+
+
+class StdoutCapture(object):
+  '''Captures messages from stdout
+
+  Parameters:
+
+    name (str): The name of the base logger to capture messages from
+
+    level (int, Optional): The integer level to set the handler to
+
+  '''
+
+
+  def __init__(self):
+
+    self.buffer = six.StringIO()
+
+
+  def __enter__(self):
+
+    self.stdout = sys.stdout
+    sys.stdout = self.buffer
+    return self.buffer
+
+
+  def __exit__(self, et, ev, tb):
+
+    sys.stdout = self.stdout
     self.buffer.seek(0) #make it ready for readout

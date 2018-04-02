@@ -16,7 +16,7 @@ from .utils import TemporaryDirectory
 
 
 SAMPLE_DIR = pkg_resources.resource_filename(__name__, os.path.join('data',
-  'dir1')
+  'dir1'))
 
 
 def test_runner():

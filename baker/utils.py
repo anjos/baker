@@ -51,7 +51,7 @@ class TemporaryDirectory(object):
                 if "None" not in str(ex):
                     raise
                 print("ERROR: {!r} while cleaning up {!r}".format(ex, self,),
-                      file=_sys.stderr)
+                      file=sys.stderr)
                 return
             self._closed = True
             if _warn:
@@ -136,9 +136,7 @@ def run_cmdline(cmd, env=None):
 
   if env is None: env = os.environ
 
-  prefix = '$ %s' % ' '.join(cmd)
-  logger.debug(prefix)
-  sys.stdout.write(prefix + '\n')
+  logger.info('$ %s' % ' '.join(cmd))
 
   start = time.time()
   out = b''
@@ -148,7 +146,11 @@ def run_cmdline(cmd, env=None):
 
   chunk_size = 1 << 13
   for chunk in iter(lambda: p.stdout.read(chunk_size), b''):
-    sys.stdout.write(chunk.decode())
+    decoded = chunk.decode()
+    while '\n' in decoded:
+      pos = decoded.index('\n')
+      logger.debug(decoded[:pos])
+      decoded = decoded[pos+1:]
     out += chunk
 
   if p.wait() != 0:
@@ -158,9 +160,7 @@ def run_cmdline(cmd, env=None):
 
   total = time.time() - start
 
-  suffix = 'command took %s' % human_time(total)
-  sys.stdout.write(suffix + '\n')
-  logger.debug(suffix)
+  logger.debug('command took %s' % human_time(total))
 
   out = out.decode()
 
