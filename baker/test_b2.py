@@ -17,6 +17,7 @@ from . import restic
 
 
 TEST_BUCKET_NAME = 'baker-test-' + str(uuid.uuid4())[:8]
+TEST_BUCKET_NAME2 = 'baker-test-' + str(uuid.uuid4())[:8]
 SAMPLE_DIR1 = pkg_resources.resource_filename(__name__, os.path.join('data',
   'dir1'))
 SAMPLE_DIR2 = pkg_resources.resource_filename(__name__, os.path.join('data',
@@ -57,11 +58,13 @@ def setup():
 
   # Creates a test bucket with a given known prefix (and a random bit)
   b2.create_bucket(TEST_BUCKET_NAME)
+  b2.create_bucket(TEST_BUCKET_NAME2)
 
 
 def teardown():
 
   b2.remove_bucket(TEST_BUCKET_NAME)
+  b2.remove_bucket(TEST_BUCKET_NAME2)
 
 
 def test_list_buckets():
@@ -168,17 +171,84 @@ def test_restic_forget():
   assert data2[0]['id'] != data1[0]['id']
 
 
-from .test_cmdline import run_init, run_init_multiple
-from .test_cmdline import run_init_error, run_init_cmdline
+def _get_b2_info():
+
+  info = b2.get_account_info()
+  return {'id': info['accountId'], 'key': info['applicationKey']}
 
 
-def test_run_init():
+def test_cmdline_init():
 
   # Cleans-up bucket before starting
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   # Retrieve credentials
-  info = b2.get_account_info()
-  b2_login = {'id': info['accountId'], 'key': info['applicationKey']}
+  from .test_cmdline import run_init
+  run_init('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
 
-  run_init('b2:%s' % TEST_BUCKET_NAME, b2_login)
+
+def test_cmdline_init_error():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  from .test_cmdline import run_init_error
+  run_init_error('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+
+
+def test_cmdline_init_multiple():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+  b2.empty_bucket(TEST_BUCKET_NAME2)
+
+  from .test_cmdline import run_init_multiple
+  run_init_multiple('b2:%s' % TEST_BUCKET_NAME, 'b2:%s' % TEST_BUCKET_NAME2,
+      _get_b2_info())
+
+
+def test_cmdline_init_cmdline():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  from .test_cmdline import run_init_cmdline
+  run_init_cmdline('b2:%s' % TEST_BUCKET_NAME, [])
+
+
+def test_cmdline_update():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  from .test_cmdline import run_update
+  run_update('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+
+
+def test_cmdline_update_error():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  from .test_cmdline import run_update_error
+  run_update_error('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+
+
+def test_cmdline_update_multiple():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+  b2.empty_bucket(TEST_BUCKET_NAME2)
+
+  from .test_cmdline import run_update_multiple
+  run_update_multiple('b2:%s' % TEST_BUCKET_NAME, 'b2:%s' % TEST_BUCKET_NAME2,
+      _get_b2_info())
+
+
+def test_cmdline_update_cmdline():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  from .test_cmdline import run_update_cmdline
+  run_update_cmdline('b2:%s' % TEST_BUCKET_NAME, [])

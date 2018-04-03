@@ -100,6 +100,11 @@ def run_init_multiple(repo1, repo2, b2):
   messages1 = messages[:int(len(messages)/2)]
   messages2 = messages[int(len(messages)/2):]
 
+  if b2:
+    # skip first couple of messages (using https://api.backblazeb2.com...)
+    messages1 = messages1[2:]
+    messages2 = messages2[2:]
+
   assert messages1[0].startswith('created restic repository')
   assert messages1[0].endswith(repo1)
   nose.tools.eq_(messages1[5], 'scan [%s]' % SAMPLE_DIR1)
@@ -154,6 +159,10 @@ def run_update(repo, b2):
 
   messages = log2.split('\n')[:-1] #removes last end-of-line
 
+  if b2:
+    # skip first couple of messages (using https://api.backblazeb2.com...)
+    messages = messages[2:]
+
   assert messages[0].startswith('using parent snapshot')
   nose.tools.eq_(messages[1], 'scan [%s]' % SAMPLE_DIR1)
   assert messages[7].startswith('snapshot')
@@ -195,6 +204,11 @@ def run_update_multiple(repo1, repo2, b2):
 
   messages1 = messages[:int(len(messages)/2)]
   messages2 = messages[int(len(messages)/2):]
+
+  if b2:
+    # skip first couple of messages (using https://api.backblazeb2.com...)
+    messages1 = messages1[2:]
+    messages2 = messages2[2:]
 
   assert messages1[0].startswith('using parent snapshot')
   nose.tools.eq_(messages1[1], 'scan [%s]' % SAMPLE_DIR1)
