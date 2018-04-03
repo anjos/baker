@@ -298,8 +298,8 @@ def setup(b2_id=None, b2_key=None):
 
   if b2_info is None:
     b2_info = get_account_info()
-    assert b2_info, 'Required B2 backend could not be setup! You may either' \
-        'set then environment variables B2_ACCOUNT_ID/B2_ACCOUNT_KEY or ' \
+    assert b2_info, 'Required B2 backend could not be setup! You may either ' \
+        'set the environment variables B2_ACCOUNT_ID/B2_ACCOUNT_KEY or ' \
         'call this method with the correct values'
 
   # reset the enviroment to make sure we're in sync with restic's cmdline
