@@ -95,9 +95,9 @@ Options:
 
 Examples:
 
-  1. Runs the program and e-mails when done:
+  1. Initializes a new repository from the contents of /data
 
-     $ %(prog)s -vv --email --email-username=me@gmail.com --password=secret
+     $ %(prog)s -vv -vv init --hostname=my-host "backup-password" "/data|/backup"
 
 """
 
@@ -430,20 +430,26 @@ def main(user_input=None):
   # parse e-mail details
   email = {}
   if args['--email']: #sending e-mails
+    logger.info('Sending **real** e-mails:')
     assert args['--email-sender'], 'You must set --email-sender to send ' \
         'e-mails'
+    logger.info(' - Sender: %s', args['--email-sender'])
     assert args['--email-receiver'], 'You must set --email-receiver to send' \
         'e-mails'
+    logger.info(' - Receivers: %s', ', '.join(args['--email-receiver']))
     assert args['--email-server'], 'You must set --email-server to send' \
         'e-mails'
+    logger.info(' - Server: %s:%s', args['--email-server'], args['--email-port'])
     assert args['--email-port'], 'You must set --email-port to send' \
         'e-mails'
     assert args['--email-username'], 'You must set --email-username to send' \
         'e-mails'
+    logger.info(' - Username: %s', args['--email-username'])
     assert args['--email-password'], 'You must set --email-password to send' \
         'e-mails'
+    logger.info(' - Password: ********')
     email['sender'] = args['--email-sender']
-    email['receiver'] = args['--email-sender']
+    email['receiver'] = args['--email-receiver']
     email['server'] = args['--email-server']
     email['port'] = args['--email-port']
     email['username'] = args['--email-username']
