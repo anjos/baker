@@ -212,7 +212,7 @@ def list_buckets():
   out = run_b2(['list-buckets'])
   if out.endswith('\n'): out = out[:-1]
   objects = out.split('\n')
-  objects = [k.split() for k in objects]
+  objects = [k.strip() for k in objects if k.strip()]
   return dict([(k[-1], k[:-1]) for k in objects])
 
 
