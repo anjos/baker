@@ -94,9 +94,10 @@ Docker Image Building
 
 To build a readily deployable docker image, do::
 
-  $ docker build --rm -t anjos/baker:latest .
+  $ docker build --rm -t anjos/baker:latest --build-arg VERSION=x.y.z .
   $ #upload it like this:
   $ docker push anjos/baker:latest
+  $ docker push anjos/baker:vx.y.z
 
 
 .. note::
