@@ -242,11 +242,12 @@ def init(configs, password, overwrite, hostname, email, b2):
         from .b2 import list_buckets, remove_bucket, authorize_account, \
             create_bucket
         log += authorize_account(b2['id'], b2['key'])
-        if repo[3:] in list_buckets() and overwrite:
-          remove_bucket(repo[3:])
-        else:
-          raise RuntimeError("BackBlaze B2 bucket `%s' already exists " \
-              "and you did not pass --overwrite" % (repo))
+        if repo[3:] in list_buckets():
+          if overwrite:
+            remove_bucket(repo[3:])
+          else:
+            raise RuntimeError("BackBlaze B2 bucket `%s' already exists " \
+                "and you did not pass --overwrite" % (repo))
         log += create_bucket(repo[3:])
 
       else:
@@ -280,6 +281,7 @@ def init(configs, password, overwrite, hostname, email, b2):
         email)
 
   except Exception as e:
+    logger.error('Error at initialization:\n%s', traceback.format_exc())
     _send_error_email('initialization', configs, log,
       traceback.format_exc(), hostname, email)
 
@@ -349,6 +351,7 @@ def update(configs, password, hostname, email, b2, keep, period):
           email)
 
     except Exception as e:
+      logger.error('Error at initialization:\n%s', traceback.format_exc())
       _send_error_email('back-up', configs, log, traceback.format_exc(),
           hostname, email)
 
