@@ -76,6 +76,12 @@ Then, you can build dependencies one by one, in order::
   $ vi ./scripts/conda-build-all.sh #comment/uncomment what to compile
   $ ./scripts/conda-build-all.sh
 
+.. note::
+
+   The process above requires the file ``${HOME}/.b2_auth`` exists and
+   contains, both the user account id and key for BackBlaze's B2. Container
+   based building of Conda_ packages will not work otherwise.
+
 
 Anaconda Uploads
 ================

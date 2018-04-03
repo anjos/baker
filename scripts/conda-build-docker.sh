@@ -4,7 +4,6 @@
 # Examples:
 # $0 /work/deps/mediainfo #builds which are pyton independent
 # $0 --python=2.7 /work/deps/pymediainfo #builds which are python dependent
-
 script_dir="$( cd "$(dirname "$0")" ; pwd -P )"
 project_dir=$(dirname ${script_dir})
 conda_dir=${HOME}/conda
@@ -28,6 +27,14 @@ for v in "${volumes[@]}"; do
   echo "[volume] $v"
   parameters="$parameters --volume $v";
 done
+
+if [ -e "${HOME}/.b2_auth" ]; then
+  # required for testing on Linux containers
+  B2_ACCOUNT_ID=$(sed '1q;d' "${HOME}/.b2_auth");
+  parameters="$parameters -e B2_ACCOUNT_ID"
+  B2_ACCOUNT_KEY=$(sed '2q;d' "${HOME}/.b2_auth");
+  parameters="$parameters -e B2_ACCOUNT_KEY"
+fi
 
 # If you pass any parameters, we execute the build with the parameters of your
 # choice, else, we assume you want to run interactively
