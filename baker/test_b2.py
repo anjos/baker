@@ -166,3 +166,19 @@ def test_restic_forget():
   nose.tools.eq_(len(data2), 1)
   nose.tools.eq_(data2[0]['parent'], data1[0]['id'])
   assert data2[0]['id'] != data1[0]['id']
+
+
+from .test_cmdline import run_init, run_init_multiple
+from .test_cmdline import run_init_error, run_init_cmdline
+
+
+def test_run_init():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  # Retrieve credentials
+  info = b2.get_account_info()
+  b2_login = {'id': info['accountId'], 'key': info['applicationKey']}
+
+  run_init('b2:%s' % TEST_BUCKET_NAME, b2_login)

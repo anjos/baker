@@ -29,18 +29,22 @@ def test_help():
     main(['--help'])
 
 
-def run_init(repo):
+def run_init(repo, b2):
 
   log, sizes, snaps = init({SAMPLE_DIR1: repo}, 'password', True, 'hostname',
-    {}, {})
+    {}, b2)
 
   nose.tools.eq_(len(sizes), 1)
   nose.tools.eq_(len(snaps), 1)
-  assert sizes[0] != 0
+  #assert sizes[0] != 0
   nose.tools.eq_(snaps[0]['paths'], [SAMPLE_DIR1])
   assert 'parent' not in snaps[0] #it is the first snapshot of repository
 
   messages = log.split('\n')[:-1] #removes last end-of-line
+
+  if b2:
+    # skip first couple of messages (using https://api.backblazeb2.com...)
+    messages = messages[2:]
 
   assert messages[0].startswith('created restic repository')
   assert messages[0].endswith(repo)
@@ -52,17 +56,17 @@ def run_init(repo):
 def test_init_local():
 
   with TemporaryDirectory() as d:
-    run_init(d)
+    run_init(d, {})
 
 
-def run_init_error(repo):
+def run_init_error(repo, b2):
 
   with LogCapture('baker') as buf:
     configs = {
       SAMPLE_DIR1: repo,
       SAMPLE_DIR2: repo, #error - cannot backup on the same repo
       }
-    log, sizes, snaps = init(configs, 'password', False, 'hostname', {}, {})
+    log, sizes, snaps = init(configs, 'password', False, 'hostname', {}, b2)
 
   assert 'ERROR during initialization' in buf.read()
 
@@ -70,20 +74,20 @@ def run_init_error(repo):
 def test_init_error():
 
   with TemporaryDirectory() as d:
-    run_init_error(d)
+    run_init_error(d, {})
 
 
-def run_init_multiple(repo1, repo2):
+def run_init_multiple(repo1, repo2, b2):
 
   configs = {
     SAMPLE_DIR1: repo1,
     SAMPLE_DIR2: repo2,
     }
-  log, sizes, snaps = init(configs, 'password', True, 'hostname', {}, {})
+  log, sizes, snaps = init(configs, 'password', True, 'hostname', {}, b2)
 
   nose.tools.eq_(len(sizes), 2)
-  assert sizes[0] != 0
-  assert sizes[1] != 0
+  #assert sizes[0] != 0
+  #assert sizes[1] != 0
 
   nose.tools.eq_(len(snaps), 2)
   nose.tools.eq_(snaps[0]['paths'], [SAMPLE_DIR1])
@@ -112,7 +116,7 @@ def run_init_multiple(repo1, repo2):
 def test_init_multiple_local():
 
   with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
-    run_init_multiple(d1, d2)
+    run_init_multiple(d1, d2, {})
 
 
 def run_init_cmdline(repo, options):
@@ -131,18 +135,18 @@ def test_init_cmdline():
     run_init_cmdline(d, [])
 
 
-def run_update(repo):
+def run_update(repo, b2):
 
   log1, sizes1, snaps1 = init({SAMPLE_DIR1: repo}, 'password', True,
-      'hostname', {}, {})
+      'hostname', {}, b2)
   log2, sizes2, snaps2 = update({SAMPLE_DIR1: repo}, 'password', 'hostname',
-      {}, {}, {'last': 1}, period=None)
+      {}, b2, {'last': 1}, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
-  assert sizes1[0] != 0
+  #assert sizes1[0] != 0
   nose.tools.eq_(len(snaps1), 1)
   nose.tools.eq_(len(sizes2), 1)
-  assert sizes2[0] != 0
+  #assert sizes2[0] != 0
   nose.tools.eq_(len(snaps2), 1)
   assert 'parent' not in snaps1[0]
   assert 'parent' in snaps2[0]
@@ -159,26 +163,26 @@ def run_update(repo):
 def test_update_local():
 
   with TemporaryDirectory() as d:
-    run_update(d)
+    run_update(d, {})
 
 
-def run_update_multiple(repo1, repo2):
+def run_update_multiple(repo1, repo2, b2):
 
   configs = {
     SAMPLE_DIR1: repo1,
     SAMPLE_DIR2: repo2,
     }
-  log1, sizes1, snaps1 = init(configs, 'password', True, 'hostname', {}, {})
-  log2, sizes2, snaps2 = update(configs, 'password', 'hostname', {}, {},
+  log1, sizes1, snaps1 = init(configs, 'password', True, 'hostname', {}, b2)
+  log2, sizes2, snaps2 = update(configs, 'password', 'hostname', {}, b2,
       {'last': 1}, period=None)
 
   nose.tools.eq_(len(sizes1), 2)
-  assert sizes1[0] != 0
-  assert sizes1[1] != 0
+  #assert sizes1[0] != 0
+  #assert sizes1[1] != 0
   nose.tools.eq_(len(snaps1), 2)
   nose.tools.eq_(len(sizes2), 2)
-  assert sizes2[0] != 0
-  assert sizes2[1] != 0
+  #assert sizes2[0] != 0
+  #assert sizes2[1] != 0
   nose.tools.eq_(len(snaps2), 2)
   assert 'parent' not in snaps1[0]
   assert 'parent' not in snaps1[1]
@@ -206,22 +210,22 @@ def run_update_multiple(repo1, repo2):
 def test_update_local_multiple():
 
   with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
-    run_update_multiple(d1, d2)
+    run_update_multiple(d1, d2, {})
 
 
-def run_update_error(repo1, repo2):
+def run_update_error(repo1, repo2, b2):
 
   with LogCapture('baker') as buf:
     configs = {
       SAMPLE_DIR1: repo1,
       SAMPLE_DIR2: repo2,
       }
-    log1, sizes1, snaps1 = init(configs, 'password', True, 'hostname', {}, {})
+    log1, sizes1, snaps1 = init(configs, 'password', True, 'hostname', {}, b2)
     configs = {
       SAMPLE_DIR1: repo1,
       SAMPLE_DIR2: repo2 + '-error', #this directory does not exist
       }
-    log2, sizes2, snaps2 = update(configs, 'password', 'hostname', {}, {},
+    log2, sizes2, snaps2 = update(configs, 'password', 'hostname', {}, b2,
         {'last': 1}, period=None)
 
   assert 'ERROR during back-up' in buf.read()
@@ -230,15 +234,15 @@ def run_update_error(repo1, repo2):
 def test_update_error():
 
   with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
-    run_update_error(d1, d2)
+    run_update_error(d1, d2, {})
 
 
-def run_update_cmdline(repo):
+def run_update_cmdline(repo, options):
 
   with StdoutCapture() as buf:
-    retval1 = main(['-vv', 'init', '--overwrite', '--hostname=hostname',
-      'password', '%s|%s' % (SAMPLE_DIR1, repo)])
-    retval2 = main(['-vv', 'update', '--hostname=hostname',
+    retval1 = main(options + ['-vv', 'init', '--overwrite',
+      '--hostname=hostname', 'password', '%s|%s' % (SAMPLE_DIR1, repo)])
+    retval2 = main(options + ['-vv', 'update', '--hostname=hostname',
       '--keep=1|0|0|0|0|0', 'password', '%s|%s' % (SAMPLE_DIR1, repo)])
 
   nose.tools.eq_(retval2, 0)
@@ -248,4 +252,4 @@ def run_update_cmdline(repo):
 def test_update_cmdline():
 
   with TemporaryDirectory() as d:
-    run_update_cmdline(d)
+    run_update_cmdline(d, [])
