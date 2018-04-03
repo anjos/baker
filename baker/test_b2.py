@@ -26,37 +26,10 @@ SAMPLE_DIR2 = pkg_resources.resource_filename(__name__, os.path.join('data',
 
 def setup():
   '''Sets up the module infrastructure'''
-  B2_AUTH_FILE = os.path.expanduser('~/.b2_auth')
 
-  b2_info = b2.get_account_info()
+  account_id, account_key = b2.setup()
 
-  # 1. checks if we're authorized
-  if b2_info is not None:
-    logger.info('B2 service is ready - using previous authorization')
-
-  # 2. checks if the user has an auth file hanging around
-  elif os.path.exists(B2_AUTH_FILE):
-    logger.info("Using b2-auth file at `%s'...", B2_AUTH_FILE)
-    with open(B2_AUTH_FILE, 'rt') as f:
-      b2_account_id, b2_account_key = \
-          [k.strip() for k in f.read().split('\n')]
-      b2.authorize_account(b2_account_id, b2_account_key)
-
-  # 3. last resource, auth tokens are set on the environment
-  elif 'B2_ACCOUNT_ID' in os.environ and 'B2_ACCOUNT_KEY' in os.environ:
-    logger.info("Using b2-auth info at environment...")
-    b2.authorize_account(os.environ['B2_ACCOUNT_ID'],
-        os.environ['B2_ACCOUNT_KEY'])
-
-  if b2_info is None:
-    b2_info = b2.get_account_info()
-    assert b2_info
-
-  # reset the enviroment to make sure we're in sync
-  os.environ['B2_ACCOUNT_ID'] = b2_info['accountId']
-  os.environ['B2_ACCOUNT_KEY'] = b2_info['applicationKey']
-
-  # Creates a test bucket with a given known prefix (and a random bit)
+  # Creates test buckets with a given known prefix (and a random bit)
   b2.create_bucket(TEST_BUCKET_NAME)
   b2.create_bucket(TEST_BUCKET_NAME2)
 
@@ -229,9 +202,11 @@ def test_cmdline_update_error():
 
   # Cleans-up bucket before starting
   b2.empty_bucket(TEST_BUCKET_NAME)
+  b2.empty_bucket(TEST_BUCKET_NAME2)
 
   from .test_cmdline import run_update_error
-  run_update_error('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+  run_update_error('b2:%s' % TEST_BUCKET_NAME, 'b2:%s' % TEST_BUCKET_NAME2,
+      _get_b2_info())
 
 
 def test_cmdline_update_multiple():

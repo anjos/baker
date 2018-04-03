@@ -238,3 +238,72 @@ def bucket_contents(name, folder=None):
   out = run_b2(args)
   if out.endswith('\n'): out = out[:-1]
   return out.split('\n')
+
+
+def setup(b2_id=None, b2_key=None):
+  '''Sets up authorization for BackBlaze B2 operations
+
+  This method will setup the B2 infrastructure for restic and b2's command-line
+  app so it works flawlessly taking into consideration:
+
+    1. Values passed as parameters
+    2. Previously authenticated sessions (~/.b2_info)
+    3. b2's command-line app authorization files (~/.b2_auth)
+    4. Environment variables B2_ACCOUNT_ID and B2_ACCOUNT_KEY
+
+  It will then authorize the b2 command-line application and setup
+  B2_ACCOUNT_ID and B2_ACCOUNT_KEY so that restic's command-line app works with
+  the same tokens.
+
+
+  Parameters:
+
+    b2_id (str, Optional): The b2 account identifier
+    b2_key (str, Optional): The b2 application key to use for the transactions
+
+
+  Returns:
+
+    str: The b2 account identifier
+    str: The b2 application key
+
+  '''
+
+  B2_AUTH_FILE = os.path.expanduser('~/.b2_auth')
+
+  # 1. Values passed as parameters: re-authorized on provided tokens
+  if b2_id and b2_key:
+    clear_account()
+    authorize_account(b2_id, b2_key)
+
+  b2_info = get_account_info()
+
+  # 2. Previously authenticated sessions
+  if b2_info is not None:
+    logger.info('B2 service is ready - using current authorization')
+
+  # 3. Checks if the user has an auth file hanging around
+  elif os.path.exists(B2_AUTH_FILE):
+    logger.info("Using b2-auth file at `%s'...", B2_AUTH_FILE)
+    with open(B2_AUTH_FILE, 'rt') as f:
+      b2_account_id, b2_account_key = \
+          [k.strip() for k in f.read().split('\n')]
+      authorize_account(b2_account_id, b2_account_key)
+
+  # 3. last resource, auth tokens are set on the environment
+  elif 'B2_ACCOUNT_ID' in os.environ and 'B2_ACCOUNT_KEY' in os.environ:
+    logger.info("Using b2-auth info at environment...")
+    authorize_account(os.environ['B2_ACCOUNT_ID'],
+        os.environ['B2_ACCOUNT_KEY'])
+
+  if b2_info is None:
+    b2_info = get_account_info()
+    assert b2_info, 'Required B2 backend could not be setup! You may either' \
+        'set then environment variables B2_ACCOUNT_ID/B2_ACCOUNT_KEY or ' \
+        'call this method with the correct values'
+
+  # reset the enviroment to make sure we're in sync with restic's cmdline
+  os.environ['B2_ACCOUNT_ID'] = b2_info['accountId']
+  os.environ['B2_ACCOUNT_KEY'] = b2_info['applicationKey']
+
+  return b2_info['accountId'], b2_info['applicationKey']

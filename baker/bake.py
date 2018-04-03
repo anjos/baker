@@ -51,11 +51,13 @@ Options:
                                used multiple times
   -b, --b2-account-id=<id>     The BackBlaze B2 account identifier. Must be
                                set if ``config`` uses a BackBlaze bucket as
-                               repository
+                               repository. Optionally, set the environment
+                               variable B2_ACCOUNT_ID
   -B, --b2-account-key=<key>   The BackBlaze B2 key to use to run the backup.
                                This key must have access to the specified
                                bucket. Must be set if ``config`` uses a
-                               BackBlaze bucket as repository
+                               BackBlaze bucket as repository. Optionally, set
+                               the environment variable B2_ACCOUNT_KEY
   -H, --hostname=<name>        Use this name as hostname instead of the
                                environment's [default: %(hostname)s]
   -k, --keep=<kept>            A 6-tuple with integer values separated by a
@@ -343,7 +345,7 @@ def update(configs, password, hostname, email, b2, keep, period):
             password=password,
             )
 
-      _send_success_email('backed-up', configs, log, sizes, snaps, hostname,
+      _send_success_email('back-up', configs, log, sizes, snaps, hostname,
           email)
 
     except Exception as e:
@@ -403,20 +405,24 @@ def main(user_input=None):
   # do some commandline parsing
   config = dict([k.split('|') for k in args['<config>']])
 
+  # B2 setup, if required
+  b2 = {}
+  for dire, repo in config.items():
+    if repo.startswith('b2:'):
+      # needs b2 authentication setup
+      from .b2 import setup as b2_setup
+      args['--b2-account-id'], args['--b2-account-key'] = b2_setup(
+          args['--b2-account-id'], args['--b2-account-key']
+          )
+      b2['id'] = args['--b2-account-id']
+      b2['key'] = args['--b2-account-key']
+      logger.info("B2 account id/key parameters provided")
+      break
+
   # check some config variables
   for dire, repo in config.items():
-    if repo.startswith('b2:') and \
-        (not args['--b2-account-id'] or not args['--b2-account-key']):
-      raise RuntimeError('Specify --b2-account-id/key for repository `%s\'' % \
-          repo)
     assert os.path.exists(dire)
     logger.info(" - (folder) %s -> %s (repo)", dire, repo)
-
-  b2 = {}
-  if args['--b2-account-id'] and args['--b2-account-key']:
-    b2['id'] = args['--b2-account-id']
-    b2['key'] = args['--b2-account-key']
-    logger.info("B2 account id/key parameters provided")
 
   # parse e-mail details
   email = {}
