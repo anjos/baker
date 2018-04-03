@@ -134,7 +134,7 @@ def _send_success_email(action, configs, log, sizes, snapshots, hostname,
   body = '''\
     Hello,
 
-    I just %(action)s the following repositories with no errors:
+    I just performed the %(action)s of these repositories with no errors:
 
     %(repo)s
     Here is the snapshot information currently available:
