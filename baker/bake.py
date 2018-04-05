@@ -104,6 +104,7 @@ Examples:
 
 import os
 import sys
+import time
 import textwrap
 import traceback
 
