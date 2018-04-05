@@ -3,12 +3,12 @@
 
 """Backs-up local folders on BackBlaze B2
 
-Usage: %(prog)s [-v...] init [--overwrite] [--b2-account-id=<id>]
-                [--b2-account-key=<key>] [--hostname=<name>]
+Usage: %(prog)s [-v...] init [--b2-account-id=<id>] [--b2-account-key=<key>]
+                [--hostname=<name>] [--cache=<dir>] [--overwrite]
                 [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 <password> <config> [<config> ...]
        %(prog)s [-v...] update [--b2-account-id=<id>] [--b2-account-key=<key>]
-                [--hostname=<name>] [--keep=<kept>]
+                [--hostname=<name>] [--cache=<dir>] [--keep=<kept>]
                 [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 [--run-daily-at=<hour>]
                 <password> <config> [<config> ...]
@@ -58,6 +58,12 @@ Options:
                                bucket. Must be set if ``config`` uses a
                                BackBlaze bucket as repository. Optionally, set
                                the environment variable B2_ACCOUNT_KEY
+  -c, --cache=<dir>            Directory where to save the restic cache to
+                               avoid excessive accesses to network-based
+                               repositories. Less important for local backups.
+                               If not set, restic will use the XDG defaults
+                               for the cache directory (typically
+                               ${HOME}/.cache/restic)
   -H, --hostname=<name>        Use this name as hostname instead of the
                                environment's [default: %(hostname)s]
   -k, --keep=<kept>            A 6-tuple with integer values separated by a
@@ -95,9 +101,26 @@ Options:
 
 Examples:
 
-  1. Initializes a new repository from the contents of /data
+  1. Initializes a new (local) repository from the contents of /data:
 
-     $ %(prog)s -vv -vv init --hostname=my-host "backup-password" "/data|/backup"
+     $ %(prog)s -vv init --hostname=my-host "password" "/data|/backup"
+
+  2. Initializes a new (BackBlaze B2) repository from the contents of /data:
+
+     $ %(prog)s -vv init --b2-account-id=yourid --b2-account-key=yourkey --hostname=my-host "password" "/data|b2:data"
+
+  3. Updates (local) repository from the contents of /data:
+
+     $ %(prog)s -vv update --hostname=my-host "password" "/data|/backup"
+
+  4. Updates (BackBlaze B2) repository from the contents of /data:
+
+     $ %(prog)s -vv update --b2-account-id=yourid --b2-account-key=yourkey --hostname=my-host "password" "/data|b2:data"
+
+  5. Updates (local) repository from the contents of /data every day at 1AM
+     (daemon mode):
+
+     $ %(prog)s -vv update --run-daily-at='1:00' --hostname=my-host "password" "/data|/backup"
 
 """
 
@@ -131,7 +154,7 @@ def _send_message(subject, body, hostname, email):
 
 
 def _send_success_email(action, configs, log, sizes, snapshots, hostname,
-    email):
+    email, cache):
   '''Sends a success e-mail message or logs only'''
 
   body = '''\
@@ -143,6 +166,8 @@ def _send_success_email(action, configs, log, sizes, snapshots, hostname,
     Here is the snapshot information currently available:
 
     %(snapshot)s
+    The current cache size is %(cache_size)d bytes.
+
     Here is some trace of the log for your reviewing pleasure:
 
     ## START OF LOG
@@ -156,6 +181,7 @@ def _send_success_email(action, configs, log, sizes, snapshots, hostname,
 
   import datetime
   from .reporter import human_time
+  from .utils import get_size
 
   snapshots_log = ''
   for k in sorted(snapshots, key=lambda k: k['time']):
@@ -175,6 +201,7 @@ def _send_success_email(action, configs, log, sizes, snapshots, hostname,
       action=action,
       repo=repo_log,
       snapshot=snapshots_log,
+      cache_size=get_size(cache),
       log=log,
       )
   _send_message(subject, body, hostname, email)
@@ -221,7 +248,7 @@ def _send_error_email(action, configs, log, trace, hostname, email):
   _send_message(subject, body, hostname, email)
 
 
-def init(configs, password, overwrite, hostname, email, b2):
+def init(configs, password, cache, overwrite, hostname, email, b2):
   '''Initializes a new set of repositories based on the configs'''
 
   if b2:
@@ -265,10 +292,30 @@ def init(configs, password, overwrite, hostname, email, b2):
         else:
           os.makedirs(repo)
 
-      log += _init(repo, [], password)
-      log += backup(dire, repo, [], hostname, [], password)
+      log += _init(
+          repository=repo,
+          global_options=[],
+          password=password,
+          cache=cache,
+          )
 
-      snaps += snapshots(repo, [], hostname, password)
+      log += backup(
+          directory=dire,
+          repository=repo,
+          global_options=[],
+          hostname=hostname,
+          backup_options=[],
+          password=password,
+          cache=cache,
+          )
+
+      snaps += snapshots(
+          repository=repo,
+          global_options=[],
+          hostname=hostname,
+          password=password,
+          cache=cache,
+          )
 
       if repo.startswith('b2:'):
         from .b2 import get_bucket
@@ -279,7 +326,7 @@ def init(configs, password, overwrite, hostname, email, b2):
         sizes.append(get_size(repo))
 
     _send_success_email('initialization', configs, log, sizes, snaps, hostname,
-        email)
+        email, cache)
 
   except Exception as e:
     logger.error('Error at initialization:\n%s', traceback.format_exc())
@@ -289,7 +336,7 @@ def init(configs, password, overwrite, hostname, email, b2):
   return log, sizes, snaps
 
 
-def update(configs, password, hostname, email, b2, keep, period):
+def update(configs, password, cache, hostname, email, b2, keep, period):
   '''Runs a continuous job (never exists) for keeping the backup updated'''
 
   def job():
@@ -316,6 +363,7 @@ def update(configs, password, hostname, email, b2, keep, period):
             hostname=hostname,
             backup_options=[],
             password=password,
+            cache=cache,
             )
 
         log += forget(
@@ -325,12 +373,14 @@ def update(configs, password, hostname, email, b2, keep, period):
             prune=True,
             keep=keep,
             password=password,
+            cache=cache,
             )
 
         log += check(
             repository=repo,
             global_options=[],
             password=password,
+            cache=cache,
             )
 
         if repo.startswith('b2:'):
@@ -346,10 +396,11 @@ def update(configs, password, hostname, email, b2, keep, period):
             global_options=[],
             hostname=hostname,
             password=password,
+            cache=cache,
             )
 
       _send_success_email('back-up', configs, log, sizes, snaps, hostname,
-          email)
+          email, cache)
 
     except Exception as e:
       logger.error('Error at initialization:\n%s', traceback.format_exc())
@@ -458,9 +509,14 @@ def main(user_input=None):
   else:
     logger.info("Only logging e-mails, **not** sending anything")
 
+  # verify cache
+  if args['--cache'] is not None:
+    assert os.path.exists(args['--cache'])
+    logger.info("Caching restic requests at: %s", args['--cache'])
+
   if args['init']:
     try:
-      init(config, args['<password>'], args['--overwrite'],
+      init(config, args['<password>'], args['--cache'], args['--overwrite'],
           args['--hostname'], email, b2)
     except Exception as e:
       raise RuntimeError('Unexpected error was not properly handled: %s' % \
@@ -476,8 +532,8 @@ def main(user_input=None):
       logger.info(' - %s: %d', key.capitalize(), value)
 
     try:
-      update(config, args['<password>'], args['--hostname'], email, b2,
-          keep, args['--run-daily-at'])
+      update(config, args['<password>'], args['--cache'], args['--hostname'],
+          email, b2, keep, args['--run-daily-at'])
     except Exception as e:
       raise RuntimeError('Unexpected error was not properly handled: %s' % \
           str(e))

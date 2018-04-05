@@ -32,8 +32,8 @@ def test_runner():
 
 def test_restic_init():
 
-  with TemporaryDirectory() as d:
-    out = restic.init(d, [], 'password')
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    out = restic.init(d, [], 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 5)
@@ -43,9 +43,9 @@ def test_restic_init():
 
 def test_restic_backup():
 
-  with TemporaryDirectory() as d:
-    restic.init(d, [], 'password')
-    out = restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    restic.init(d, [], 'password', cache)
+    out = restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 7)
@@ -56,10 +56,10 @@ def test_restic_backup():
 
 def test_restic_check():
 
-  with TemporaryDirectory() as d:
-    restic.init(d, [], 'password')
-    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
-    out = restic.check(d, [], 'password')
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    restic.init(d, [], 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    out = restic.check(d, [], 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 5)
@@ -70,11 +70,11 @@ def test_restic_check():
 
 def test_restic_snapshots():
 
-  with TemporaryDirectory() as d:
-    restic.init(d, [], 'password')
-    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
-    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
-    data = restic.snapshots(d, ['--json'], 'hostname', 'password')
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    restic.init(d, [], 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    data = restic.snapshots(d, ['--json'], 'hostname', 'password', cache)
 
   # data is a list of dictionaries with the following fields
   #   * time: The time the snapshot was taken (as a datetime.datetime obj)
@@ -95,13 +95,13 @@ def test_restic_snapshots():
 
 def test_restic_forget():
 
-  with TemporaryDirectory() as d:
-    restic.init(d, [], 'password')
-    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
-    data1 = restic.snapshots(d, ['--json'], 'hostname', 'password')
-    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password')
-    restic.forget(d, [], 'hostname', True, {'last': 1}, 'password')
-    data2 = restic.snapshots(d, ['--json'], 'hostname', 'password')
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    restic.init(d, [], 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    data1 = restic.snapshots(d, ['--json'], 'hostname', 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    restic.forget(d, [], 'hostname', True, {'last': 1}, 'password', cache)
+    data2 = restic.snapshots(d, ['--json'], 'hostname', 'password', cache)
 
   # there are 2 backups which are nearly identical
   nose.tools.eq_(len(data2), 1)

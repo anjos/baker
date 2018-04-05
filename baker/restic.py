@@ -19,7 +19,8 @@ RESTIC_BIN = which('restic')
 logger.debug('Using restic from `%s\'', RESTIC_BIN)
 
 
-def run_restic(global_options, subcmd, subcmd_options, password=None):
+def run_restic(global_options, subcmd, subcmd_options, password=None,
+    cache=None):
   '''Runs restic on a contained environment, report output and status
 
 
@@ -37,6 +38,9 @@ def run_restic(global_options, subcmd, subcmd_options, password=None):
 
     password (str, Optional): The restic repository password
 
+    cache (str, Optional): The path to the cache directory to use for restic.
+      If not set, use the XDG cache default (typically ~/.cache/restic)
+
 
   Returns:
 
@@ -48,6 +52,9 @@ def run_restic(global_options, subcmd, subcmd_options, password=None):
 
   env = copy.copy(os.environ)
   if password: env.setdefault('RESTIC_PASSWORD', password)
+
+  if cache:
+    global_options += ['--cache-dir', cache]
 
   cmd = [RESTIC_BIN] + global_options + [subcmd] + subcmd_options
 
@@ -71,7 +78,7 @@ def version():
   return run_restic([], 'version', [])
 
 
-def init(repository, global_options, password):
+def init(repository, global_options, password, cache):
   '''Initializes a restic repository
 
   The repository may be local or sitting on a remote B2 bucket
@@ -89,15 +96,18 @@ def init(repository, global_options, password):
 
     password (str): The restic repository password
 
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
   '''
 
   _assert_b2_setup(repository)
   return run_restic(['--repo', repository] + global_options, 'init', [],
-      password)
+      password, cache)
 
 
 def backup(directory, repository, global_options, hostname, backup_options,
-    password):
+    password, cache):
   '''Performs the backup
 
   This command executes ``restic backup`` for the provided local directory on
@@ -125,14 +135,18 @@ def backup(directory, repository, global_options, hostname, backup_options,
 
     password (str): The restic repository password
 
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
   '''
 
   _assert_b2_setup(repository)
   return run_restic(['--repo', repository] + global_options,
-      'backup', ['--hostname', hostname] + backup_options + [directory], password)
+      'backup', ['--hostname', hostname] + backup_options + [directory],
+      password, cache)
 
 
-def forget(repository, global_options, hostname, prune, keep, password):
+def forget(repository, global_options, hostname, prune, keep, password, cache):
   '''Performs the backup
 
   This command executes ``restic forget`` for the provided local directory on
@@ -160,6 +174,9 @@ def forget(repository, global_options, hostname, prune, keep, password):
 
     password (str): The restic repository password
 
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
   '''
 
   _assert_b2_setup(repository)
@@ -169,10 +186,10 @@ def forget(repository, global_options, hostname, prune, keep, password):
     options += ['--keep-%s' % key, str(keep[key])]
 
   return run_restic(['--repo', repository] + global_options,
-      'forget', ['--host', hostname] + options, password)
+      'forget', ['--host', hostname] + options, password, cache)
 
 
-def check(repository, global_options, password):
+def check(repository, global_options, password, cache):
   '''Checks the sanity of a restic repository
 
   This procedure is recommended after each forget operation
@@ -190,16 +207,19 @@ def check(repository, global_options, password):
 
     password (str): The restic repository password
 
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
   '''
 
   _assert_b2_setup(repository)
 
   options = ['--check-unused']
   return run_restic(['--repo', repository] + global_options,
-      'check', options, password)
+      'check', options, password, cache)
 
 
-def snapshots(repository, global_options, hostname, password):
+def snapshots(repository, global_options, hostname, password, cache):
   '''Lists current snapshots available
 
   Parameters:
@@ -216,6 +236,9 @@ def snapshots(repository, global_options, hostname, password):
 
     password (str): The restic repository password
 
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
 
   Returns:
 
@@ -227,7 +250,7 @@ def snapshots(repository, global_options, hostname, password):
   _assert_b2_setup(repository)
 
   output = run_restic(['--repo', repository, '--json'] + global_options,
-      'snapshots', ['--host', hostname], password)
+      'snapshots', ['--host', hostname], password, cache)
 
   data = json.loads(output)
 

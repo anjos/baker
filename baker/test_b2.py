@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 from . import b2
 from . import restic
+from .utils import TemporaryDirectory
 
 
 TEST_BUCKET_NAME = 'baker-test-' + str(uuid.uuid4())[:8]
@@ -63,7 +64,9 @@ def test_restic_init():
   # Cleans-up bucket before starting
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
-  out = restic.init(repo, [], 'password')
+
+  with TemporaryDirectory() as cache:
+    out = restic.init(repo, [], 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 5)
@@ -76,8 +79,11 @@ def test_restic_backup():
 
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
-  restic.init(repo, [], 'password')
-  out = restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
+
+  with TemporaryDirectory() as cache:
+    restic.init(repo, [], 'password', cache)
+    out = restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password',
+        cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 7)
@@ -90,9 +96,11 @@ def test_restic_check():
 
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
-  restic.init(repo, [], 'password')
-  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
-  out = restic.check(repo, [], 'password')
+
+  with TemporaryDirectory() as cache:
+    restic.init(repo, [], 'password', cache)
+    restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password', cache)
+    out = restic.check(repo, [], 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 5)
@@ -105,10 +113,12 @@ def test_restic_snapshots():
 
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
-  restic.init(repo, [], 'password')
-  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
-  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
-  data = restic.snapshots(repo, ['--json'], 'hostname', 'password')
+
+  with TemporaryDirectory() as cache:
+    restic.init(repo, [], 'password', cache)
+    restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password', cache)
+    restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password', cache)
+    data = restic.snapshots(repo, ['--json'], 'hostname', 'password', cache)
 
   # data is a list of dictionaries with the following fields
   #   * time: The time the snapshot was taken (as a datetime.datetime obj)
@@ -131,12 +141,14 @@ def test_restic_forget():
 
   b2.empty_bucket(TEST_BUCKET_NAME)
   repo = 'b2:%s' % TEST_BUCKET_NAME
-  restic.init(repo, [], 'password')
-  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
-  data1 = restic.snapshots(repo, ['--json'], 'hostname', 'password')
-  restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password')
-  restic.forget(repo, [], 'hostname', True, {'last': 1}, 'password')
-  data2 = restic.snapshots(repo, ['--json'], 'hostname', 'password')
+
+  with TemporaryDirectory() as cache:
+    restic.init(repo, [], 'password', cache)
+    restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password', cache)
+    data1 = restic.snapshots(repo, ['--json'], 'hostname', 'password', cache)
+    restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password', cache)
+    restic.forget(repo, [], 'hostname', True, {'last': 1}, 'password', cache)
+    data2 = restic.snapshots(repo, ['--json'], 'hostname', 'password', cache)
 
   # there are 2 backups which are nearly identical
   nose.tools.eq_(len(data2), 1)
