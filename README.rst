@@ -130,19 +130,28 @@ and there is a huge source of information and resources for building container
 images on the internet.
 
 To deploy baker, just download the released image at DockerHub_ and create a
-container through Container Station. The container starts the built-in
-``bake`` application that backups your folders based on command-line options
-and arguments. I typically just mount the directories to be backed up with
-suggestive names (set this in "Advanced Settings" -> "Shared folders"). The run
-command I typically use is this::
+container through Container Station. The container starts the built-in ``bake``
+application that backups your folders based on command-line options and
+arguments. I typically mount the directories to be backed up with suggestive
+names (set this in "Advanced Settings" -> "Shared folders") and in
+**read-only** mode. I run the ``init`` command once to initialize the restic
+repository::
 
-  # choose entrypoint to be backed-up
-  -vv --email --username="your.username@gmail.com" --password="create-an-app-password-for-gmail"
+  # mount data to backup at container's "/data-to-backup", read-only mode
+  -vv init --b2-account-id=yourid --b2-account-key=yourkey --hostname=my-host "password" "/data-to-backup|b2:data-bucket-for-restic"
 
 If you'd like to use Gmail for sending e-mails about latest activity, just make
 sure to set the ``--email`` flag and set your username and specific-app
 password (to avoid 2-factor authentication). ``baker`` should handle this
 flawlessly. Other e-mail providers should also be reacheable in the same way.
+
+Once the initialization of the repository is done, you may proceed and create a
+second container that will run in daemon mode, updating the repository
+constantly, once a day. Container settings should be the same as for the
+initialization. The command-line should be slightly different::
+
+  # mount data to backup at container's "/data-to-backup", read-only mode
+  -vv update --b2-account-id=yourid --b2-account-key=yourkey --hostname=my-host "password" "/data-to-backup|b2:data-bucket-for-restic"
 
 
 .. Place your references after this line
