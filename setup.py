@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 setup(
 
     name='baker',
-    version='1.0.2',
+    version='1.1.0',
     description="Utilities for backing-up my QNAP on BackBlaze's B2",
     url='https://github.com/anjos/baker',
     license="GPLv3",
