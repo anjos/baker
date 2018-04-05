@@ -8,6 +8,7 @@ import os
 import sys
 import six
 import smtplib
+import datetime
 import pkg_resources
 import email.mime.text
 
@@ -23,9 +24,10 @@ class Email(object):
 
     subject (str): The e-mail subject
 
-    body (str): The e-mail body
+    body_text (str): The e-mail body in text format
 
-		hostname (str): The string to use for hostname
+    body_html (str, None): The e-mail body in HTML format or None if not
+      supposed to be sent
 
     sender (str): The e-mail sender
 
@@ -33,22 +35,22 @@ class Email(object):
 
   '''
 
-  def __init__(self, subject, body, hostname, sender, to):
+  def __init__(self, subject, body_text, body_html, sender, to):
 
-    # get information from package and host, put on header
-    prefix = '[baker-%s@%s] ' % \
-        (pkg_resources.require('baker')[0].version, hostname)
-
-    self.subject = prefix + subject
-    self.body = body
     self.sender = sender
     self.to = to
 
     # mime message setup
-    self.msg = email.mime.text.MIMEText(self.body)
-    self.msg['Subject'] = self.subject
-    self.msg['From'] = self.sender
-    self.msg['To'] = ', '.join(self.to)
+    if body_html is None:
+      self.msg = email.mime.text.MIMEText(body_text)
+    else:
+      self.msg = email.mime.multipart.MIMEMultipart('alternative')
+      self.attach(email.mime.text.MIMEText(body_text, 'plain'))
+      self.attach(email.mime.text.MIMEText(body_html, 'html'))
+
+    self.msg['Subject'] = subject
+    self.msg['From'] = sender
+    self.msg['To'] = ', '.join(to)
 
 
   def send(self, server, port, username, password):
@@ -201,3 +203,19 @@ class StdoutCapture(object):
 
     sys.stdout = self.stdout
     self.buffer.seek(0) #make it ready for readout
+
+
+def pluralize(obj, singular, plural):
+  '''Returns either singular or plural depending on the objects' length'''
+  if len(obj) == 1: return singular
+  return plural
+
+
+def format_datetime(dt):
+  '''Returns a formatted version of the provided datetime object'''
+  return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def humanize_time(dt):
+  '''Returns a relative representation of time based on a datetime object'''
+  return human_time((datetime.datetime.now() - dt).total_seconds())

@@ -130,6 +130,7 @@ import sys
 import time
 import textwrap
 import traceback
+import pkg_resources
 
 import logging
 logger = logging.getLogger(__name__)
@@ -137,115 +138,46 @@ logger = logging.getLogger(__name__)
 import schedule
 
 
-def _send_message(subject, body, hostname, email):
+def _send_message(subject_template, body_template_text, body_template_html,
+    context, email):
   '''Sends an e-mail message or logs only'''
 
-  from .reporter import Email
+  from .reporter import Email, pluralize, format_datetime, humanize_time
+  from .utils import get_size
+  from jinja2 import Environment, PackageLoader, select_autoescape
+
+  env = Environment(loader=PackageLoader(__name__, 'templates'),
+      autoescape=select_autoescape(disabled_extensions=('txt',),
+        default_for_string=True, default=True))
+
+  # adds personalized filters for our templates
+  env.filters['bake_pluralize'] = pluralize
+  env.filters['du_dir'] = get_size
+  env.filters['format_datetime'] = format_datetime
+  env.filters['humanize_time'] = humanize_time
+
+  # completes the context with package variables
+  context['package'] = 'baker'
+  context['version'] = pkg_resources.require('baker')[0].version
+
+  subject = env.get_template(subject_template).render(**context)
+  body_text = env.get_template(body_template_text).render(**context)
+
+  if body_template_html is not None:
+    body_html = env.get_template(body_template_html).render(**context)
+  else:
+    body_html = None
 
   sender = email.get('sender', 'nobody@example.com')
   receiver = email.get('receiver', ['nobody@example.com'])
-  msg = Email(subject, body, hostname, sender, receiver)
+
+  msg = Email(subject, body_text, body_html, sender, receiver)
 
   if email:
     msg.send(email['server'], email['port'], email['username'],
       email['password'])
   else:
     logger.info(msg.message())
-
-
-def _send_success_email(action, configs, log, sizes, snapshots, hostname,
-    email, cache):
-  '''Sends a success e-mail message or logs only'''
-
-  body = '''\
-    Hello,
-
-    I just performed the %(action)s of these repositories with no errors:
-
-    %(repo)s
-    Here is the snapshot information currently available:
-
-    %(snapshot)s
-    The current cache size is %(cache_size)d bytes.
-
-    Here is some trace of the log for your reviewing pleasure:
-
-    ## START OF LOG
-    %(log)s
-    ## END OF LOG
-
-    That is it, have a good day!
-
-    Your faithul robot
-    '''
-
-  import datetime
-  from .reporter import human_time
-  from .utils import get_size
-
-  snapshots_log = ''
-  for k in sorted(snapshots, key=lambda k: k['time']):
-    since = (datetime.datetime.now() - k['time']).total_seconds()
-    snapshots_log += '%s (%s ago) [%s] %s at %s\n' % \
-        (k['time'].strftime('%Y-%m-%d %H:%M:%S'), human_time(since),
-            k['short_id'], k['paths'][0], k['hostname'])
-
-  repo_log = ''
-  for k, (dire, repo) in enumerate(configs.items()):
-    repo_log += '%s -> %s (%.2f Gb)\n' % \
-        (dire, repo, sizes[k]/(1024.*1024.*1024.))
-
-  subject = 'Successful %s of %s -> %s' % (action, dire, repo)
-  body = textwrap.dedent(body)
-  body = body % dict(
-      action=action,
-      repo=repo_log,
-      snapshot=snapshots_log,
-      cache_size=get_size(cache),
-      log=log,
-      )
-  _send_message(subject, body, hostname, email)
-
-
-def _send_error_email(action, configs, log, trace, hostname, email):
-  '''Sends an error e-mail message or logs only'''
-
-  body = '''\
-    Hello,
-
-    There has been an error during the %(action)s of:
-
-    %(repo)s
-    Here is the traceback information I collected:
-
-    ## START OF TRACE
-    %(trace)s
-    ## END OF TRACE
-
-    Here is some trace of the log to help you debugging:
-
-    ## START OF LOG
-    %(log)s
-    ## END OF LOG
-
-    That is it, have a good day!
-
-    Your faithul robot
-    '''
-
-  repo_log = ''
-  for k, (dire, repo) in enumerate(configs.items()):
-    repo_log += '%s -> %s\n' % (dire, repo)
-
-  subject = 'ERROR during %s' % (action,)
-  body = textwrap.dedent(body)
-  body = body % dict(
-      action=action,
-      repo=repo_log,
-      log=log,
-      trace=trace,
-      )
-  _send_message(subject, body, hostname, email)
 
 
 def init(configs, password, cache, overwrite, hostname, email, b2):
@@ -257,6 +189,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2):
 
   from .restic import init as _init
   from .restic import backup, snapshots
+  from .utils import get_size
 
   log = ''
   sizes = []
@@ -322,16 +255,30 @@ def init(configs, password, cache, overwrite, hostname, email, b2):
         info = get_bucket(repo[3:])
         sizes.append(0) #info['totalSize']
       else:
-        from .utils import get_size
         sizes.append(get_size(repo))
 
-    _send_success_email('initialization', configs, log, sizes, snaps, hostname,
-        email, cache)
+      context = dict(
+          configs=configs,
+          sizes=sizes,
+          snapshots=snaps,
+          cache=cache,
+          log=log,
+          hostname=hostname,
+          )
+      _send_message('init/subject_success.txt', 'init/body_success.txt',
+          None, context, email)
 
   except Exception as e:
     logger.error('Error at initialization:\n%s', traceback.format_exc())
-    _send_error_email('initialization', configs, log,
-      traceback.format_exc(), hostname, email)
+    context = dict(
+        configs=configs,
+        trace=traceback.format_exc(),
+        cache=cache,
+        log=log,
+        hostname=hostname,
+        )
+    _send_message('init/subject_error.txt', 'init/body_error.txt',
+        None, context, email)
 
   return log, sizes, snaps
 
@@ -347,6 +294,7 @@ def update(configs, password, cache, hostname, email, b2, keep, period):
       os.environ.setdefault('B2_ACCOUNT_KEY', b2['key'])
 
     from .restic import backup, forget, check, snapshots
+    from .utils import get_size
 
     log = ''
     sizes = []
@@ -399,13 +347,28 @@ def update(configs, password, cache, hostname, email, b2, keep, period):
             cache=cache,
             )
 
-      _send_success_email('back-up', configs, log, sizes, snaps, hostname,
-          email, cache)
+      context = dict(
+          configs=configs,
+          sizes=sizes,
+          snapshots=snaps,
+          cache=cache,
+          log=log,
+          hostname=hostname,
+          )
+      _send_message('update/subject_success.txt', 'update/body_success.txt',
+          None, context, email)
 
     except Exception as e:
-      logger.error('Error at initialization:\n%s', traceback.format_exc())
-      _send_error_email('back-up', configs, log, traceback.format_exc(),
-          hostname, email)
+      logger.error('Error at update:\n%s', traceback.format_exc())
+      context = dict(
+          configs=configs,
+          trace=traceback.format_exc(),
+          cache=cache,
+          log=log,
+          hostname=hostname,
+          )
+      _send_message('update/subject_error.txt', 'update/body_error.txt',
+          None, context, email)
 
     return log, sizes, snaps
 
@@ -431,7 +394,6 @@ def main(user_input=None):
 
   import docopt
   import socket
-  import pkg_resources
 
   completions = dict(
       prog=os.path.basename(sys.argv[0]),

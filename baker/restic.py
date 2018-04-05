@@ -243,7 +243,8 @@ def snapshots(repository, global_options, hostname, password, cache):
   Returns:
 
     list: A list of dictionaries with the properties of each snapshot following
-    the specifications
+    the specifications. The list is organized by snapshot date, the first being
+    the oldest snapshot and the last the youngest.
 
   '''
 
@@ -259,4 +260,4 @@ def snapshots(repository, global_options, hostname, password, cache):
     s = k['time'][:24]
     k['time'] = datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f')
 
-  return data
+  return sorted(data, key=lambda k: k['time'])

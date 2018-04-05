@@ -11,6 +11,7 @@ dependencies:
 - b2
 - restic
 - schedule
+- jinja2
 - ipdb
 - bob.buildout
 - mr.developer

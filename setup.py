@@ -23,6 +23,7 @@ setup(
       'docopt',
       'six',
       'schedule',
+      'jinja2',
       ],
 
     entry_points = {

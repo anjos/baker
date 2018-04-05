@@ -1,2 +1,3 @@
 include COPYING README.rst buildout.cfg dev.yml
 recursive-include baker/data *.txt
+recursive-include baker/templates *.txt *.html

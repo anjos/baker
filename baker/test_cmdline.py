@@ -248,7 +248,7 @@ def run_update_error(repo1, repo2, b2):
     log2, sizes2, snaps2 = update(configs, 'password', cache, 'hostname', {},
         b2, {'last': 1}, period=None)
 
-  assert 'ERROR during back-up' in buf.read()
+  assert 'ERROR during update' in buf.read()
 
 
 def test_update_error():

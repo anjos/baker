@@ -167,12 +167,13 @@ def run_cmdline(cmd, env=None):
   return out
 
 
-def get_size(start_path = '.'):
+def get_size(path = '.'):
   '''Returns the total size (in bytes) of contents of the provided directory'''
 
   total_size = 0
-  for dirpath, dirnames, filenames in os.walk(start_path):
+  for dirpath, dirnames, filenames in os.walk(path):
     for f in filenames:
       fp = os.path.join(dirpath, f)
       total_size += os.path.getsize(fp)
+
   return total_size

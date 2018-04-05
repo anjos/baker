@@ -1,0 +1,1 @@
+[{{ package }}-{{ version }}@{{ hostname }}] ERROR during update of {{ configs|length }} repositor{{ configs|bake_pluralize('y','ies') }}
