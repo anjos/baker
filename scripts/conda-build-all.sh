@@ -18,13 +18,13 @@ python_pkgs=()
 python_pkgs+=('conda') #baker itself
 
 for p in "${simple_pkgs[@]}"; do
-  conda build --build-only ${p}
+  conda build ${p}
   ${script_dir}/conda-build-docker.sh /work/$p
 done
 
 for pyver in "${python_versions[@]}"; do
   for p in "${python_pkgs[@]}"; do
     conda build --python=$pyver $p
-    ${script_dir}/conda-build-docker.sh --build-only --python=$pyver /work/$p
+    ${script_dir}/conda-build-docker.sh --python=$pyver /work/$p
   done
 done
