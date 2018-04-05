@@ -81,10 +81,12 @@ def test_init_error():
 
 def run_init_multiple(repo1, repo2, b2):
 
-  configs = {
-    SAMPLE_DIR1: repo1,
-    SAMPLE_DIR2: repo2,
-    }
+  from collections import OrderedDict
+
+  configs = OrderedDict([ #preserves order for tests
+    (SAMPLE_DIR1, repo1),
+    (SAMPLE_DIR2, repo2),
+    ])
 
   with TemporaryDirectory() as cache:
     log, sizes, snaps = init(configs, 'password', cache, True, 'hostname', {},
@@ -180,10 +182,13 @@ def test_update_local():
 
 def run_update_multiple(repo1, repo2, b2):
 
-  configs = {
-    SAMPLE_DIR1: repo1,
-    SAMPLE_DIR2: repo2,
-    }
+  from collections import OrderedDict
+
+  configs = OrderedDict([ #preserves order for tests
+    (SAMPLE_DIR1, repo1),
+    (SAMPLE_DIR2, repo2),
+    ])
+
   with TemporaryDirectory() as cache:
     log1, sizes1, snaps1 = init(configs, 'password', cache, True, 'hostname',
         {}, b2)
