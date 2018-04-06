@@ -1,1 +1,1 @@
-[{{ package }}-{{ version }}@{{ hostname }}] ERROR during initialization of {{ configs|length }} repositor{{ configs|bake_pluralize('y','ies') }}
+{% extends "subject.txt" %}{% block action %}ERROR during initialization of{% endblock action %}

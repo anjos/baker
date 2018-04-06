@@ -11,6 +11,7 @@ import smtplib
 import datetime
 import pkg_resources
 import email.mime.text
+import email.mime.multipart
 
 import logging
 logger = logging.getLogger(__name__)
@@ -45,8 +46,8 @@ class Email(object):
       self.msg = email.mime.text.MIMEText(body_text)
     else:
       self.msg = email.mime.multipart.MIMEMultipart('alternative')
-      self.attach(email.mime.text.MIMEText(body_text, 'plain'))
-      self.attach(email.mime.text.MIMEText(body_html, 'html'))
+      self.msg.attach(email.mime.text.MIMEText(body_text, 'plain'))
+      self.msg.attach(email.mime.text.MIMEText(body_html, 'html'))
 
     self.msg['Subject'] = subject
     self.msg['From'] = sender

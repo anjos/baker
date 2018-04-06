@@ -266,7 +266,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2):
           hostname=hostname,
           )
       _send_message('init/subject_success.txt', 'init/body_success.txt',
-          None, context, email)
+          'init/body_success.html', context, email)
 
   except Exception as e:
     logger.error('Error at initialization:\n%s', traceback.format_exc())
@@ -278,7 +278,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2):
         hostname=hostname,
         )
     _send_message('init/subject_error.txt', 'init/body_error.txt',
-        None, context, email)
+        'init/body_error.html', context, email)
 
   return log, sizes, snaps
 
@@ -356,7 +356,7 @@ def update(configs, password, cache, hostname, email, b2, keep, period):
           hostname=hostname,
           )
       _send_message('update/subject_success.txt', 'update/body_success.txt',
-          None, context, email)
+          'update/body_success.html', context, email)
 
     except Exception as e:
       logger.error('Error at update:\n%s', traceback.format_exc())
@@ -368,7 +368,7 @@ def update(configs, password, cache, hostname, email, b2, keep, period):
           hostname=hostname,
           )
       _send_message('update/subject_error.txt', 'update/body_error.txt',
-          None, context, email)
+          'update/body_error.html', context, email)
 
     return log, sizes, snaps
 

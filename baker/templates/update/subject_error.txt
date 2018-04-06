@@ -1,1 +1,1 @@
-[{{ package }}-{{ version }}@{{ hostname }}] ERROR during update of {{ configs|length }} repositor{{ configs|bake_pluralize('y','ies') }}
+{% extends "subject.txt" %}{% block action %}ERROR during update of{% endblock action %}

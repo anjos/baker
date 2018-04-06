@@ -1,0 +1,1 @@
+[{{ package }}-{{ version }}@{{ hostname }}] {% block action %}Successful initialization of{% endblock action%} {{ configs|length }} repositor{{ configs|bake_pluralize('y','ies') }}

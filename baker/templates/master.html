@@ -1,0 +1,98 @@
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+      }
+      pre {
+        background-color: black;
+        color: white;
+        font-size: medium;
+        font-family: 'Roboto Mono', monospace;
+        padding: 5px;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      h4 {
+        color: #2e66c1;
+      }
+      b {
+        color: #2e66c1;
+      }
+      b.success {
+        color: #5bad5e;
+      }
+      b.error {
+        color: #ce5e54;
+      }
+      th {
+        background-color: #2e66c1;
+        color: white;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 5px;
+        text-align: left;
+      }
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      tr:hover {
+        background-color:#ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Hello,</p>
+
+    <p>{% block action %}<b class="success">Successful</b> initialization of{% endblock action %} <b>{{ configs|length }}</b> repositor{{ configs|bake_pluralize('y','ies') }}:</p>
+
+    {% if configs is defined -%}
+    <table>
+      <tr><th>Local path</th><th>Repository</th></tr>
+      {% for dir, repo in configs.items() %}
+        <tr><td>{{ dir }}</td><td>{{ repo }}</td></tr>
+      {% endfor %}
+    </table>
+    {%- endif %}
+
+    {% if cache is defined -%}
+    <p>The current cache size is <b>{{ cache|du_dir }}</b> bytes.</p>
+    {%- endif %}
+
+    {% if snapshots is defined -%}
+    <h4>Snapshots</h4>
+    {% for path in snapshots|groupby('paths') -%}
+    <p><b>Path</b>: {{ path.grouper|join(', ') }}</p>
+      <table>
+        <tr><th>Date</th><th>Time delta</th><th>Short identifier</th></tr>
+        {% for k in path.list %}
+          <tr>
+            <td>{{ k['time']|format_datetime }}</td>
+            <td>{{ k['time']|humanize_time }}</td>
+            <td>{{ k['short_id'] }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endfor %}
+    {%- endif %}
+
+    {% if trace -%}
+    <h4>Trace</h4>
+    <pre>{{ trace -}}
+    </pre>
+    {%- endif %}
+
+    {% if log -%}
+    <h4>Logs</h4>
+    <pre>{{ log -}}
+    </pre>
+    {%- endif %}
+
+    <p>That is it, have a good day!</p>
+
+    <p>Your faithul robot</p>
+  </body>
+</html>

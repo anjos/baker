@@ -1,23 +1,2 @@
-Hello,
-
-Error detected while initializing the following {{ configs|length }} repositor{{ configs|bake_pluralize('y','ies') }}:
-
-{% for dir, repo in configs.items() %}{{ dir }} -> {{ repo }}
-{% endfor %}
-{% if cache %}The current cache size is {{ cache|du_dir }} bytes.
-{% endif %}
-Here is the traceback:
-
-## START OF TRACE
-{{ trace }}
-## END OF TRACE
-
-Here is some trace of the log to help you debugging:
-
-## START OF LOG
-{{ log }}
-## END OF LOG
-
-That is it, have a good day!
-
-Your faithul robot
+{% extends "master.txt" %}
+{% block action %}Error detected while initializing{% endblock %}
