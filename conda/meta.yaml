@@ -27,6 +27,7 @@ requirements:
     - restic
     - b2
     - schedule
+    - jinja2
 
 test:
   imports:
