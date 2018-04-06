@@ -17,13 +17,18 @@ B2_BIN = which('b2')
 logger.debug('Using b2 from `%s\'', B2_BIN)
 
 
-def run_b2(args):
+def run_b2(args, mask=None):
   '''Runs the b2 binary with the provided arguments
 
 
   Parameters:
 
     args (list): List of arguments to pass to the ``b2`` binary
+
+    mask (int, Optional): If set to a value that is different than ``None``,
+      then we replace everything from the cmd list index ``[mask:]`` by
+      asterisks.  This may be imoprtant to avoid passwords or keys to be shown
+      on the screen or sent via email.
 
 
   Returns:
@@ -33,7 +38,7 @@ def run_b2(args):
   '''
 
   assert B2_BIN, "The executable `b2' must be available on your ${PATH}"
-  return run_cmdline([B2_BIN] + args)
+  return run_cmdline([B2_BIN] + args, mask=mask)
 
 
 def version():
@@ -83,7 +88,7 @@ def authorize_account(account_id, key):
 
   '''
 
-  return run_b2(['authorize-account', account_id, key])
+  return run_b2(['authorize-account', account_id, key], mask=2)
 
 
 def sync(bucket, path):

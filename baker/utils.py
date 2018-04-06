@@ -7,6 +7,7 @@ from __future__ import print_function
 import os
 import sys
 import time
+import copy
 import warnings
 import tempfile
 import subprocess
@@ -116,7 +117,7 @@ def which(program):
   return None
 
 
-def run_cmdline(cmd, env=None):
+def run_cmdline(cmd, env=None, mask=None):
   '''Runs a command on a environment, logs output and reports status
 
 
@@ -127,6 +128,11 @@ def run_cmdline(cmd, env=None):
     env (dict, Optional): Environment to use for running the program on. If not
       set, use :py:obj:`os.environ`.
 
+    mask (int, Optional): If set to a value that is different than ``None``,
+      then we replace everything from the cmd list index ``[mask:]`` by
+      asterisks.  This may be imoprtant to avoid passwords or keys to be shown
+      on the screen or sent via email.
+
 
   Returns:
 
@@ -136,7 +142,12 @@ def run_cmdline(cmd, env=None):
 
   if env is None: env = os.environ
 
-  logger.info('$ %s' % ' '.join(cmd))
+  cmd_log = cmd
+  if mask:
+    cmd_log = copy.copy(cmd)
+    for k in range(mask, len(cmd)):
+      cmd_log[k] = '*' * len(cmd_log[k])
+  logger.info('$ %s' % ' '.join(cmd_log))
 
   start = time.time()
   out = b''
@@ -156,7 +167,7 @@ def run_cmdline(cmd, env=None):
   if p.wait() != 0:
     logger.error('Command output is:\n%s', out.decode())
     raise RuntimeError("command `%s' exited with error state (%d)" % \
-        (' '.join(cmd), p.returncode))
+        (' '.join(cmd_log), p.returncode))
 
   total = time.time() - start
 

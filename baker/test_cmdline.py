@@ -5,15 +5,14 @@
 
 
 import os
-import sys
-import six
-import logging
 import nose.tools
 import pkg_resources
 
 from .utils import TemporaryDirectory
-from .bake import main, init, update
 from .reporter import StdoutCapture, LogCapture
+
+from . import commands
+from . import bake
 
 
 SAMPLE_DIR1 = pkg_resources.resource_filename(__name__, os.path.join('data',
@@ -26,14 +25,14 @@ SAMPLE_DIR2 = pkg_resources.resource_filename(__name__, os.path.join('data',
 def test_help():
 
   with StdoutCapture() as buf:
-    main(['--help'])
+    bake.main(['--help'])
 
 
 def run_init(repo, b2):
 
   with TemporaryDirectory() as cache:
-    log, sizes, snaps = init({SAMPLE_DIR1: repo}, 'password', cache, True,
-        'hostname', {}, b2)
+    log, sizes, snaps = commands.init({SAMPLE_DIR1: repo}, 'password', cache,
+        True, 'hostname', {}, b2)
 
   nose.tools.eq_(len(sizes), 1)
   nose.tools.eq_(len(snaps), 1)
@@ -67,8 +66,8 @@ def run_init_error(repo, b2):
       SAMPLE_DIR1: repo,
       SAMPLE_DIR2: repo, #error - cannot backup on the same repo
       }
-    log, sizes, snaps = init(configs, 'password', cache, False, 'hostname', {},
-        b2)
+    log, sizes, snaps = commands.init(configs, 'password', cache, False,
+        'hostname', {}, b2)
 
   assert 'ERROR during initialization' in buf.read()
 
@@ -89,8 +88,8 @@ def run_init_multiple(repo1, repo2, b2):
     ])
 
   with TemporaryDirectory() as cache:
-    log, sizes, snaps = init(configs, 'password', cache, True, 'hostname', {},
-        b2)
+    log, sizes, snaps = commands.init(configs, 'password', cache, True,
+        'hostname', {}, b2)
 
   nose.tools.eq_(len(sizes), 2)
   #assert sizes[0] != 0
@@ -134,7 +133,7 @@ def test_init_multiple_local():
 def run_init_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
-    retval = main(options + ['-vv', 'init', '--overwrite',
+    retval = bake.main(options + ['-vv', 'init', '--overwrite',
       '--cache=%s' % cache, '--hostname=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
@@ -151,10 +150,10 @@ def test_init_cmdline():
 def run_update(repo, b2):
 
   with TemporaryDirectory() as cache:
-    log1, sizes1, snaps1 = init({SAMPLE_DIR1: repo}, 'password', cache, True,
-        'hostname', {}, b2)
-    log2, sizes2, snaps2 = update({SAMPLE_DIR1: repo}, 'password', cache,
-        'hostname', {}, b2, {'last': 1}, period=None)
+    log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
+        cache, True, 'hostname', {}, b2)
+    log2, sizes2, snaps2 = commands.update({SAMPLE_DIR1: repo}, 'password',
+        cache, 'hostname', {}, b2, {'last': 1}, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
   #assert sizes1[0] != 0
@@ -168,10 +167,10 @@ def run_update(repo, b2):
 
   messages = log2.split('\n')[:-1] #removes last end-of-line
 
-  assert messages[0].startswith('using parent snapshot')
-  nose.tools.eq_(messages[1], 'scan [%s]' % SAMPLE_DIR1)
-  assert messages[7].startswith('snapshot')
-  assert messages[7].endswith('saved')
+  assert messages[1].startswith('using parent snapshot')
+  nose.tools.eq_(messages[2], 'scan [%s]' % SAMPLE_DIR1)
+  assert messages[8].startswith('snapshot')
+  assert messages[8].endswith('saved')
 
 
 def test_update_local():
@@ -190,10 +189,10 @@ def run_update_multiple(repo1, repo2, b2):
     ])
 
   with TemporaryDirectory() as cache:
-    log1, sizes1, snaps1 = init(configs, 'password', cache, True, 'hostname',
-        {}, b2)
-    log2, sizes2, snaps2 = update(configs, 'password', cache, 'hostname', {},
-        b2, {'last': 1}, period=None)
+    log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
+        'hostname', {}, b2)
+    log2, sizes2, snaps2 = commands.update(configs, 'password', cache,
+        'hostname', {}, b2, {'last': 1}, period=None)
 
   nose.tools.eq_(len(sizes1), 2)
   #assert sizes1[0] != 0
@@ -213,7 +212,9 @@ def run_update_multiple(repo1, repo2, b2):
   messages = log2.split('\n')[:-1] #removes last end-of-line
 
   messages1 = messages[:int(len(messages)/2)]
+  messages1 = messages1[1:] #remove "Using https://api.backblazeb2.com"
   messages2 = messages[int(len(messages)/2):]
+  messages2 = messages2[1:] #remove "Using https://api.backblazeb2.com"
 
   assert messages1[0].startswith('using parent snapshot')
   nose.tools.eq_(messages1[1], 'scan [%s]' % SAMPLE_DIR1)
@@ -239,14 +240,14 @@ def run_update_error(repo1, repo2, b2):
       SAMPLE_DIR1: repo1,
       SAMPLE_DIR2: repo2,
       }
-    log1, sizes1, snaps1 = init(configs, 'password', cache, True, 'hostname',
-        {}, b2)
+    log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
+        'hostname', {}, b2)
     configs = {
       SAMPLE_DIR1: repo1,
       SAMPLE_DIR2: repo2 + '-error', #this directory does not exist
       }
-    log2, sizes2, snaps2 = update(configs, 'password', cache, 'hostname', {},
-        b2, {'last': 1}, period=None)
+    log2, sizes2, snaps2 = commands.update(configs, 'password', cache,
+        'hostname', {}, b2, {'last': 1}, period=None)
 
   assert 'ERROR during update' in buf.read()
 
@@ -260,10 +261,10 @@ def test_update_error():
 def run_update_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
-    retval1 = main(options + ['-vv', 'init', '--overwrite',
+    retval1 = bake.main(options + ['-vv', 'init', '--overwrite',
       '--cache=%s' % cache, '--hostname=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
-    retval2 = main(options + ['-vv', 'update', '--hostname=hostname',
+    retval2 = bake.main(options + ['-vv', 'update', '--hostname=hostname',
       '--cache=%s' % cache, '--keep=1|0|0|0|0|0', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 

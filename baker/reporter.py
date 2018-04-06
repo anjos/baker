@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# vim: set fileencoding=utf-8 :
 
 '''Reporting infrastructure'''
 
@@ -9,7 +9,6 @@ import sys
 import six
 import smtplib
 import datetime
-import pkg_resources
 import email.mime.text
 import email.mime.multipart
 

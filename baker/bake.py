@@ -127,262 +127,17 @@ Examples:
 
 import os
 import sys
-import time
-import textwrap
-import traceback
-import pkg_resources
+import socket
 
 import logging
 logger = logging.getLogger(__name__)
 
-import schedule
+import pkg_resources
+import docopt
 
-
-def _send_message(subject_template, body_template_text, body_template_html,
-    context, email):
-  '''Sends an e-mail message or logs only'''
-
-  from .reporter import Email, pluralize, format_datetime, humanize_time
-  from .utils import get_size
-  from jinja2 import Environment, PackageLoader, select_autoescape
-
-  env = Environment(loader=PackageLoader(__name__, 'templates'),
-      autoescape=select_autoescape(disabled_extensions=('txt',),
-        default_for_string=True, default=True))
-
-  # adds personalized filters for our templates
-  env.filters['bake_pluralize'] = pluralize
-  env.filters['du_dir'] = get_size
-  env.filters['format_datetime'] = format_datetime
-  env.filters['humanize_time'] = humanize_time
-
-  # completes the context with package variables
-  context['package'] = 'baker'
-  context['version'] = pkg_resources.require('baker')[0].version
-
-  subject = env.get_template(subject_template).render(**context)
-  body_text = env.get_template(body_template_text).render(**context)
-
-  if body_template_html is not None:
-    body_html = env.get_template(body_template_html).render(**context)
-  else:
-    body_html = None
-
-  sender = email.get('sender', 'nobody@example.com')
-  receiver = email.get('receiver', ['nobody@example.com'])
-
-  msg = Email(subject, body_text, body_html, sender, receiver)
-
-  if email:
-    msg.send(email['server'], email['port'], email['username'],
-      email['password'])
-  else:
-    logger.info(msg.message())
-
-
-def init(configs, password, cache, overwrite, hostname, email, b2):
-  '''Initializes a new set of repositories based on the configs'''
-
-  if b2:
-    os.environ.setdefault('B2_ACCOUNT_ID', b2['id'])
-    os.environ.setdefault('B2_ACCOUNT_KEY', b2['key'])
-
-  from .restic import init as _init
-  from .restic import backup, snapshots
-  from .utils import get_size
-
-  log = ''
-  sizes = []
-  snaps = []
-
-  try:
-
-    for k, (dire, repo) in enumerate(configs.items()):
-
-      if repo.startswith('b2:'): # BackBlaze B2 repository
-        from .b2 import list_buckets, remove_bucket, authorize_account, \
-            create_bucket
-        log += authorize_account(b2['id'], b2['key'])
-        if repo[3:] in list_buckets():
-          if overwrite:
-            remove_bucket(repo[3:])
-          else:
-            raise RuntimeError("BackBlaze B2 bucket `%s' already exists " \
-                "and you did not pass --overwrite" % (repo))
-        log += create_bucket(repo[3:])
-
-      else:
-        if os.path.exists(repo):
-          if os.listdir(repo):
-            if overwrite:
-              logger.info("Removing directory `%s' on user request", repo)
-              import shutil
-              shutil.rmtree(repo)
-              os.makedirs(repo)
-            else:
-              raise RuntimeError("Directory `%s' already exists " \
-                  "and you did not pass --overwrite" % (repo))
-        else:
-          os.makedirs(repo)
-
-      log += _init(
-          repository=repo,
-          global_options=[],
-          password=password,
-          cache=cache,
-          )
-
-      log += backup(
-          directory=dire,
-          repository=repo,
-          global_options=[],
-          hostname=hostname,
-          backup_options=[],
-          password=password,
-          cache=cache,
-          )
-
-      snaps += snapshots(
-          repository=repo,
-          global_options=[],
-          hostname=hostname,
-          password=password,
-          cache=cache,
-          )
-
-      if repo.startswith('b2:'):
-        from .b2 import get_bucket
-        info = get_bucket(repo[3:])
-        sizes.append(0) #info['totalSize']
-      else:
-        sizes.append(get_size(repo))
-
-      context = dict(
-          configs=configs,
-          sizes=sizes,
-          snapshots=snaps,
-          cache=cache,
-          log=log,
-          hostname=hostname,
-          )
-      _send_message('init/subject_success.txt', 'init/body_success.txt',
-          'init/body_success.html', context, email)
-
-  except Exception as e:
-    logger.error('Error at initialization:\n%s', traceback.format_exc())
-    context = dict(
-        configs=configs,
-        trace=traceback.format_exc(),
-        cache=cache,
-        log=log,
-        hostname=hostname,
-        )
-    _send_message('init/subject_error.txt', 'init/body_error.txt',
-        'init/body_error.html', context, email)
-
-  return log, sizes, snaps
-
-
-def update(configs, password, cache, hostname, email, b2, keep, period):
-  '''Runs a continuous job (never exists) for keeping the backup updated'''
-
-  def job():
-    '''The job that gets scheduled'''
-
-    if b2:
-      os.environ.setdefault('B2_ACCOUNT_ID', b2['id'])
-      os.environ.setdefault('B2_ACCOUNT_KEY', b2['key'])
-
-    from .restic import backup, forget, check, snapshots
-    from .utils import get_size
-
-    log = ''
-    sizes = []
-    snaps = []
-
-    try:
-
-      for dire, repo in configs.items():
-
-        log += backup(
-            directory=dire,
-            repository=repo,
-            global_options=[],
-            hostname=hostname,
-            backup_options=[],
-            password=password,
-            cache=cache,
-            )
-
-        log += forget(
-            repository=repo,
-            global_options=[],
-            hostname=hostname,
-            prune=True,
-            keep=keep,
-            password=password,
-            cache=cache,
-            )
-
-        log += check(
-            repository=repo,
-            global_options=[],
-            password=password,
-            cache=cache,
-            )
-
-        if repo.startswith('b2:'):
-          from .b2 import get_bucket
-          info = get_bucket(repo[3:])
-          sizes.append(0) #info['totalSize']
-        else:
-          from .utils import get_size
-          sizes.append(get_size(repo))
-
-        snaps += snapshots(
-            repository=repo,
-            global_options=[],
-            hostname=hostname,
-            password=password,
-            cache=cache,
-            )
-
-      context = dict(
-          configs=configs,
-          sizes=sizes,
-          snapshots=snaps,
-          cache=cache,
-          log=log,
-          hostname=hostname,
-          )
-      _send_message('update/subject_success.txt', 'update/body_success.txt',
-          'update/body_success.html', context, email)
-
-    except Exception as e:
-      logger.error('Error at update:\n%s', traceback.format_exc())
-      context = dict(
-          configs=configs,
-          trace=traceback.format_exc(),
-          cache=cache,
-          log=log,
-          hostname=hostname,
-          )
-      _send_message('update/subject_error.txt', 'update/body_error.txt',
-          'update/body_error.html', context, email)
-
-    return log, sizes, snaps
-
-
-  if period is None:
-    logger.info('Scheduling backup job to run only once')
-    return job() #run once
-  else:
-    logger.info('Scheduling backup job to run every day at %s', period)
-    schedule.every().day.at(period).do(job)
-
-  while True:
-    schedule.run_pending()
-    time.sleep(600) #checks every 10 minutes
+from . import restic
+from . import b2
+from . import commands
 
 
 def main(user_input=None):
@@ -391,9 +146,6 @@ def main(user_input=None):
     argv = user_input
   else:
     argv = sys.argv[1:]
-
-  import docopt
-  import socket
 
   completions = dict(
       prog=os.path.basename(sys.argv[0]),
@@ -410,29 +162,25 @@ def main(user_input=None):
   from .reporter import setup_logger
   logger = setup_logger('baker', args['--verbose'])
 
-  from .restic import version as restic_version
-  from .b2 import version as b2_version
-
   # log
   logger.info("Baker version %s (running on %s)",
       completions['version'], args['--hostname'])
-  logger.info(" - %s", restic_version().split('\n')[0])
-  logger.info(" - %s", b2_version().split('\n')[0])
+  logger.info(" - %s", restic.version().split('\n')[0])
+  logger.info(" - %s", b2.version().split('\n')[0])
 
   # do some commandline parsing
   config = dict([k.split('|') for k in args['<config>']])
 
   # B2 setup, if required
-  b2 = {}
+  b2_cred = {}
   for dire, repo in config.items():
     if repo.startswith('b2:'):
       # needs b2 authentication setup
-      from .b2 import setup as b2_setup
-      args['--b2-account-id'], args['--b2-account-key'] = b2_setup(
+      args['--b2-account-id'], args['--b2-account-key'] = b2.setup(
           args['--b2-account-id'], args['--b2-account-key']
           )
-      b2['id'] = args['--b2-account-id']
-      b2['key'] = args['--b2-account-key']
+      b2_cred['id'] = args['--b2-account-id']
+      b2_cred['key'] = args['--b2-account-key']
       logger.info("B2 account id/key parameters provided")
       break
 
@@ -478,8 +226,15 @@ def main(user_input=None):
 
   if args['init']:
     try:
-      init(config, args['<password>'], args['--cache'], args['--overwrite'],
-          args['--hostname'], email, b2)
+      commands.init(
+          config,
+          args['<password>'],
+          args['--cache'],
+          args['--overwrite'],
+          args['--hostname'],
+          email,
+          b2_cred,
+          )
     except Exception as e:
       raise RuntimeError('Unexpected error was not properly handled: %s' % \
           str(e))
@@ -494,8 +249,16 @@ def main(user_input=None):
       logger.info(' - %s: %d', key.capitalize(), value)
 
     try:
-      update(config, args['<password>'], args['--cache'], args['--hostname'],
-          email, b2, keep, args['--run-daily-at'])
+      commands.update(
+          config,
+          args['<password>'],
+          args['--cache'],
+          args['--hostname'],
+          email,
+          b2_cred,
+          keep,
+          args['--run-daily-at'],
+          )
     except Exception as e:
       raise RuntimeError('Unexpected error was not properly handled: %s' % \
           str(e))
