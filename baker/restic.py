@@ -267,6 +267,40 @@ def snapshots(repository, global_options, hostname, password, cache):
   return sorted(data, key=lambda k: k['time'])
 
 
+def unlock(repository, global_options, password, cache, remove_all):
+  '''Removes stale locks from a remote repository
+
+  Parameters:
+
+    repository (str): The restic repository that will hold the backup. This can
+      be either a local repository path or a BackBlaze B2 bucket name, duly
+      prefixed by ``b2:``.
+
+    global_options (list): A list of global options to pass to restic (like
+      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+      this will be included automatically
+
+    password (str): The restic repository password
+
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
+    remove_all (bool): If we should remove all locks (including non-stale ones).
+      This will pass the subcommand option ``--remove-all`` to restic
+
+
+  Returns:
+
+    str: The output of the command
+
+  '''
+
+  _assert_b2_setup(repository)
+  unlock_options = ['--remove-all'] if remove_all else []
+  return run_restic(['--repo', repository] + global_options, 'unlock',
+      unlock_options, password, cache)
+
+
 def rebuild_index(repository, global_options, password, cache):
   '''Rebuilds the index on an existing repository
 

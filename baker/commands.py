@@ -185,6 +185,14 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period,
           log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
 
         if recover:
+          log += restic.unlock(
+              repository=repo,
+              global_options=[],
+              password=password,
+              cache=cache,
+              remove_all=False, #only stale lock removal
+              )
+
           log += restic.rebuild_index(
               repository=repo,
               global_options=[],
