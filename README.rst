@@ -153,6 +153,13 @@ initialization. The command-line should be slightly different::
   # mount data to backup at container's "/data-to-backup", read-only mode
   -vv update --b2-account-id=yourid --b2-account-key=yourkey --hostname=my-host "password" "/data-to-backup|b2:data-bucket-for-restic"
 
+Optionally, implement monitoring in a third, separate container, that will
+execute the following command (alerts you if latest snapshots are older than a
+certain threshold - in seconds)::
+
+  # mount data to backup at container's "/data-to-backup", read-only mode
+  -vv check --alarm=172800 --b2-account-id=yourid --b2-account-key=yourkey --hostname=my-host "password" "/data-to-backup|b2:data-bucket-for-restic"
+
 
 .. Place your references after this line
 .. _conda: http://conda.pydata.org/miniconda.html
