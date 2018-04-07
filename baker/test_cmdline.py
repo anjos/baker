@@ -167,10 +167,14 @@ def run_update(repo, b2):
 
   messages = log2.split('\n')[:-1] #removes last end-of-line
 
-  assert messages[1].startswith('using parent snapshot')
-  nose.tools.eq_(messages[2], 'scan [%s]' % SAMPLE_DIR1)
-  assert messages[8].startswith('snapshot')
-  assert messages[8].endswith('saved')
+  if b2:
+    nose.tools.eq_(messages[0], "Using https://api.backblazeb2.com")
+    messages = messages[1:]
+
+  assert messages[0].startswith('using parent snapshot')
+  nose.tools.eq_(messages[1], 'scan [%s]' % SAMPLE_DIR1)
+  assert messages[7].startswith('snapshot')
+  assert messages[7].endswith('saved')
 
 
 def test_update_local():
@@ -212,9 +216,13 @@ def run_update_multiple(repo1, repo2, b2):
   messages = log2.split('\n')[:-1] #removes last end-of-line
 
   messages1 = messages[:int(len(messages)/2)]
-  messages1 = messages1[1:] #remove "Using https://api.backblazeb2.com"
   messages2 = messages[int(len(messages)/2):]
-  messages2 = messages2[1:] #remove "Using https://api.backblazeb2.com"
+  if b2:
+    nose.tools.eq_(messages1[0], "Using https://api.backblazeb2.com")
+    messages1 = messages1[1:]
+  if b2:
+    nose.tools.eq_(messages2[0], "Using https://api.backblazeb2.com")
+    messages2 = messages2[1:]
 
   assert messages1[0].startswith('using parent snapshot')
   nose.tools.eq_(messages1[1], 'scan [%s]' % SAMPLE_DIR1)
