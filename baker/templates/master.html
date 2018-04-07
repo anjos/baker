@@ -59,7 +59,7 @@
     {%- endif %}
 
     {% if cache is defined -%}
-    <p>The current cache size is <b>{{ cache|du_dir }}</b> bytes.</p>
+    <p>The current cache size is <b>{{ cache|du_dir|humanize_bytes }}</b>.</p>
     {%- endif %}
 
     {% if snapshots is defined -%}

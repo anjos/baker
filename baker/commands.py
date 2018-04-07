@@ -40,6 +40,7 @@ def _send_message(subject_template, body_template_text, body_template_html,
   env.filters['format_datetime'] = reporter.format_datetime
   env.filters['humanize_time'] = reporter.humanize_time
   env.filters['summarize_seconds'] = reporter.summarize_seconds
+  env.filters['humanize_bytes'] = reporter.humanize_bytes
 
   # completes the context with package variables
   context['package'] = 'baker'

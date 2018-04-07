@@ -8,7 +8,7 @@ Hello,
 {%- endif %}
 
 {% if cache is defined -%}
-The current cache size is {{ cache|du_dir }} bytes.
+The current cache size is {{ cache|du_dir|humanize_bytes }}.
 {%- endif %}
 
 {% if snapshots is defined -%}

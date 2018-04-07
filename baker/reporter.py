@@ -230,3 +230,14 @@ def summarize_seconds(secs):
 def humanize_time(dt):
   '''Returns a relative representation of time based on a datetime object'''
   return human_time((datetime.datetime.now() - dt).total_seconds())
+
+
+def humanize_bytes(v):
+  '''Returns an approximate representation of the value in kB, MB, GB...'''
+  power = float(2**10) #1024
+  n = 0
+  power_dict = {0 : '', 1: 'kilo', 2: 'mega', 3: 'giga', 4: 'tera'}
+  while size > power:
+    size /= power
+    n += 1
+  return '%.2f %sbytes' % (size, power_dict[n])
