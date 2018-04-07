@@ -10,8 +10,11 @@ Usage: %(prog)s [-v...] init [--b2-account-id=<id>] [--b2-account-key=<key>]
        %(prog)s [-v...] update [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--hostname=<name>] [--cache=<dir>] [--keep=<kept>]
                 [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
-                [--run-daily-at=<hour>]
-                <password> <config> [<config> ...]
+                [--run-daily-at=<hour>] <password> <config> [<config> ...]
+       %(prog)s [-v...] check [--b2-account-id=<id>] [--b2-account-key=<key>]
+                [--hostname=<name>] [--cache=<dir>] [--alarm=<seconds>]
+                [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
+                [--run-daily-at=<hour>] <password> <config> [<config> ...]
        %(prog)s --help
        %(prog)s --version
 
@@ -32,6 +35,11 @@ Commands:
            minutes) to keep your remote copy up-to-date with local changes. If
            set up to do so, this app will send you an e-mail everytime a new
            snapshot is created.
+  check    Continuously monitor your (remote) restic repository. Use this
+           command to check and inform you whether your repository is not being
+           updated as you'd like. You can run this command in one of two modes:
+           continuously if you pass the --run-daily-at flag, or for a single
+           check/report if that is not set.
 
 
 Arguments:
@@ -49,6 +57,10 @@ Options:
   -V, --version                Prints the version and exits
   -v, --verbose                Increases the output verbosity level. May be
                                used multiple times
+  -a, --alarm=<seconds>        Set the check condition so that an alarm is
+                               issued if the latest snapshot on the repository
+                               is older than this number of seconds. A value of
+                               zero disables the alarm [default: 0]
   -b, --b2-account-id=<id>     The BackBlaze B2 account identifier. Must be
                                set if ``config`` uses a BackBlaze bucket as
                                repository. Optionally, set the environment
@@ -121,6 +133,15 @@ Examples:
      (daemon mode):
 
      $ %(prog)s -vv update --run-daily-at='1:00' --hostname=my-host "password" "/data|/backup"
+
+  6. Runs a single repository check, reports:
+
+     $ %(prog)s -vv check --hostname=my-host "password" "/data|/backup"
+
+  7. Runs a daily repository check, sends an alarm if did not backup for 2
+     days (172800 seconds):
+
+     $ %(prog)s -vv check --run-daily-at='9:00' --alarm=172800 --hostname=my-host "password" "/data|/backup"
 
 """
 
@@ -260,6 +281,23 @@ def main(user_input=None):
           email,
           b2_cred,
           keep,
+          args['--run-daily-at'],
+          )
+    except Exception as e:
+      raise RuntimeError('Unexpected error was not properly handled: %s' % \
+          str(e))
+
+  elif args['check']:
+
+    try:
+      commands.check(
+          config,
+          args['<password>'],
+          args['--cache'],
+          args['--hostname'],
+          email,
+          b2_cred,
+          int(args['--alarm']),
           args['--run-daily-at'],
           )
     except Exception as e:

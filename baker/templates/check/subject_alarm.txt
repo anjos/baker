@@ -1,0 +1,1 @@
+{% extends "subject.txt" %}{% block action %}ALARM condition ({{ alarm|summarize_seconds }}) reached during check of{% endblock action %}

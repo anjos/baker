@@ -1,0 +1,2 @@
+{% extends "master.txt" %}
+{% block action %}ALARM condition ({{ alarm|summarize_seconds }}) was reached while checking{% endblock %}

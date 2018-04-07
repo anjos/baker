@@ -130,14 +130,20 @@ def human_time(seconds, granularity=2):
       seconds -= value * count
       if value == 1:
         name = name.rstrip('s')
-      result.append("{} {}".format(value, name))
+      result.append("{} {}".format(int(value), name))
     else:
       # Add a blank if we're in the middle of other values
       if len(result) > 0:
         result.append(None)
 
   if not result:
-    return '%.2f seconds' % seconds
+    if seconds < 1.0:
+      return '%.2f seconds' % seconds
+    else:
+      if seconds == 1:
+        return '1 second'
+      else:
+        return '%d seconds' % seconds
 
   return ', '.join([x for x in result[:granularity] if x is not None])
 
@@ -214,6 +220,11 @@ def pluralize(obj, singular, plural):
 def format_datetime(dt):
   '''Returns a formatted version of the provided datetime object'''
   return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def summarize_seconds(secs):
+  '''Returns a relative representation of time based on a number of seconds'''
+  return human_time(secs)
 
 
 def humanize_time(dt):

@@ -6,6 +6,7 @@
 import os
 import time
 import shutil
+import datetime
 import traceback
 
 import logging
@@ -38,6 +39,7 @@ def _send_message(subject_template, body_template_text, body_template_html,
   env.filters['du_dir'] = utils.get_size
   env.filters['format_datetime'] = reporter.format_datetime
   env.filters['humanize_time'] = reporter.humanize_time
+  env.filters['summarize_seconds'] = reporter.summarize_seconds
 
   # completes the context with package variables
   context['package'] = 'baker'
@@ -159,7 +161,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
 
 
 def update(configs, password, cache, hostname, email, b2_cred, keep, period):
-  '''Runs a continuous job (never exists) for keeping the backup updated'''
+  '''Runs a continuous job (never exits) for keeping the backup updated'''
 
   def job():
     '''The job that gets scheduled'''
@@ -251,6 +253,100 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period):
     return job() #run once
   else:
     logger.info('Scheduling backup job to run every day at %s', period)
+    schedule.every().day.at(period).do(job)
+
+  while True:
+    schedule.run_pending()
+    time.sleep(600) #checks every 10 minutes
+
+
+def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
+  '''Runs a continuous job (never exits) for checking health of repositories'''
+
+  def job():
+    '''The job that gets scheduled'''
+
+    if b2_cred:
+      os.environ.setdefault('B2_ACCOUNT_ID', b2_cred['id'])
+      os.environ.setdefault('B2_ACCOUNT_KEY', b2_cred['key'])
+
+    log = ''
+    sizes = []
+    snapshots = []
+
+    try:
+
+      alarm_condition = False
+
+      for dire, repo in configs.items():
+
+        if repo.startswith('b2:'): # BackBlaze B2 repository
+          log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
+
+        log += restic.check(
+            repository=repo,
+            global_options=[],
+            password=password,
+            cache=cache,
+            )
+
+        if repo.startswith('b2:'):
+          info = b2.get_bucket(repo[3:])
+          sizes.append(0) #info['totalSize']
+        else:
+          sizes.append(utils.get_size(repo))
+
+        snapshots += restic.snapshots(
+            repository=repo,
+            global_options=[],
+            hostname=hostname,
+            password=password,
+            cache=cache,
+            )
+
+        delta = datetime.datetime.now() - snapshots[-1]['time']
+        if alarm > 0 and delta.total_seconds() > alarm:
+          alarm_condition = True
+
+      context = dict(
+          configs=configs,
+          sizes=sizes,
+          snapshots=snapshots,
+          cache=cache,
+          log=log,
+          hostname=hostname,
+          )
+
+      if alarm_condition:
+        context['alarm'] = alarm
+        _send_message('check/subject_alarm.txt', 'check/body_alarm.txt',
+            'check/body_alarm.html', context, email)
+
+      else:
+        # it is a single check, always send an e-mail
+        _send_message('check/subject_success.txt', 'check/body_success.txt',
+            'check/body_success.html', context, email)
+
+    except Exception as e:
+      logger.error('Error at update:\n%s', traceback.format_exc())
+      context = dict(
+          configs=configs,
+          trace=traceback.format_exc(),
+          cache=cache,
+          log=log,
+          hostname=hostname,
+          )
+      _send_message('check/subject_error.txt', 'check/body_error.txt',
+          'check/body_error.html', context, email)
+
+    return log, sizes, snapshots
+
+
+  if period is None:
+    logger.info('Scheduling check job to run only once')
+    return job() #run once
+  else:
+    logger.info('Scheduling check job to run every day at %s', period)
     schedule.every().day.at(period).do(job)
 
   while True:

@@ -5,6 +5,7 @@
 
 
 import os
+import time
 import nose.tools
 import pkg_resources
 
@@ -277,10 +278,172 @@ def run_update_cmdline(repo, options):
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
   nose.tools.eq_(retval2, 0)
-  assert 'Successful initialization of' in buf.read()
+  assert 'Successful update of' in buf.read()
 
 
 def test_update_cmdline():
 
   with TemporaryDirectory() as d:
     run_update_cmdline(d, [])
+
+
+def run_check(repo, b2):
+
+  with TemporaryDirectory() as cache, LogCapture('baker') as buf:
+    log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
+        cache, True, 'hostname', {}, b2)
+    log2, sizes2, snaps2 = commands.check({SAMPLE_DIR1: repo}, 'password',
+        cache, 'hostname', {}, b2, alarm=1000, period=None)
+
+  nose.tools.eq_(len(sizes1), 1)
+  #assert sizes1[0] != 0
+  nose.tools.eq_(len(snaps1), 1)
+  nose.tools.eq_(len(sizes2), 1)
+  #assert sizes2[0] != 0
+  nose.tools.eq_(len(snaps2), 1)
+  nose.tools.eq_(snaps1, snaps2)
+
+  messages = log2.split('\n')[:-1] #removes last end-of-line
+
+  assert 'check all packs' in messages
+  assert 'check snapshots, trees and blobs' in messages
+  nose.tools.eq_(messages[-1], 'no errors were found')
+
+  assert 'Successful check of 1 repository' in buf.read()
+
+
+def test_check_local():
+
+  with TemporaryDirectory() as d:
+    run_check(d, {})
+
+
+def run_check_alarm(repo, b2):
+
+  with TemporaryDirectory() as cache, LogCapture('baker') as buf:
+    log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
+        cache, True, 'hostname', {}, b2)
+    time.sleep(1.1) #reach alarm condition
+    log2, sizes2, snaps2 = commands.check({SAMPLE_DIR1: repo}, 'password',
+        cache, 'hostname', {}, b2, alarm=1, period=None)
+
+  nose.tools.eq_(len(sizes1), 1)
+  #assert sizes1[0] != 0
+  nose.tools.eq_(len(snaps1), 1)
+  nose.tools.eq_(len(sizes2), 1)
+  #assert sizes2[0] != 0
+  nose.tools.eq_(len(snaps2), 1)
+  nose.tools.eq_(snaps1, snaps2)
+
+  messages = log2.split('\n')[:-1] #removes last end-of-line
+
+  assert 'check all packs' in messages
+  assert 'check snapshots, trees and blobs' in messages
+  nose.tools.eq_(messages[-1], 'no errors were found')
+
+  assert 'ALARM condition (1 second) reached' in buf.read()
+
+
+def test_check_alarm_local():
+
+  with TemporaryDirectory() as d:
+    run_check_alarm(d, {})
+
+
+def run_check_multiple(repo1, repo2, b2):
+
+  from collections import OrderedDict
+
+  configs = OrderedDict([ #preserves order for tests
+    (SAMPLE_DIR1, repo1),
+    (SAMPLE_DIR2, repo2),
+    ])
+
+  with TemporaryDirectory() as cache, LogCapture('baker') as buf:
+    log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
+        'hostname', {}, b2)
+    time.sleep(1.1)
+    log2, sizes2, snaps2 = commands.check(configs, 'password', cache,
+        'hostname', {}, b2, alarm=1, period=None)
+
+  nose.tools.eq_(len(sizes1), 2)
+  #assert sizes1[0] != 0
+  #assert sizes1[1] != 0
+  nose.tools.eq_(len(snaps1), 2)
+  nose.tools.eq_(len(sizes2), 2)
+  #assert sizes2[0] != 0
+  #assert sizes2[1] != 0
+  nose.tools.eq_(len(snaps2), 2)
+  nose.tools.eq_(snaps1, snaps2)
+
+  messages = log2.split('\n')[:-1] #removes last end-of-line
+
+  messages1 = messages[:int(len(messages)/2)]
+  messages2 = messages[int(len(messages)/2):]
+  if b2:
+    nose.tools.eq_(messages1[0], "Using https://api.backblazeb2.com")
+    messages1 = messages1[1:]
+  if b2:
+    nose.tools.eq_(messages2[0], "Using https://api.backblazeb2.com")
+    messages2 = messages2[1:]
+
+  assert 'check all packs' in messages1
+  assert 'check snapshots, trees and blobs' in messages1
+  nose.tools.eq_(messages1[-1], 'no errors were found')
+
+  assert 'check all packs' in messages2
+  assert 'check snapshots, trees and blobs' in messages2
+  nose.tools.eq_(messages2[-1], 'no errors were found')
+
+  assert 'ALARM condition (1 second) reached' in buf.read()
+
+
+def test_check_local_multiple():
+
+  with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    run_check_multiple(d1, d2, {})
+
+
+def run_check_error(repo1, repo2, b2):
+
+  with LogCapture('baker') as buf, TemporaryDirectory() as cache:
+    configs = {
+      SAMPLE_DIR1: repo1,
+      SAMPLE_DIR2: repo2,
+      }
+    log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
+        'hostname', {}, b2)
+    configs = {
+      SAMPLE_DIR1: repo1,
+      SAMPLE_DIR2: repo2 + '-error', #this directory does not exist
+      }
+    log2, sizes2, snaps2 = commands.check(configs, 'password', cache,
+        'hostname', {}, b2, alarm=0, period=None)
+
+  assert 'ERROR during check' in buf.read()
+
+
+def test_check_error():
+
+  with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    run_check_error(d1, d2, {})
+
+
+def run_check_cmdline(repo, options):
+
+  with StdoutCapture() as buf, TemporaryDirectory() as cache:
+    retval1 = bake.main(options + ['-vv', 'init', '--overwrite',
+      '--cache=%s' % cache, '--hostname=hostname', 'password',
+      '%s|%s' % (SAMPLE_DIR1, repo)])
+    retval2 = bake.main(options + ['-vv', 'check', '--hostname=hostname',
+      '--cache=%s' % cache, '--alarm=1000', 'password',
+      '%s|%s' % (SAMPLE_DIR1, repo)])
+
+  nose.tools.eq_(retval2, 0)
+  assert 'Successful check of' in buf.read()
+
+
+def test_check_cmdline():
+
+  with TemporaryDirectory() as d:
+    run_check_cmdline(d, [])

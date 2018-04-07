@@ -1,0 +1,1 @@
+{% extends "subject.txt" %}{% block action %}Successful check of{% endblock action %}
