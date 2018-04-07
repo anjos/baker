@@ -33,7 +33,7 @@ def run_init(repo, b2):
 
   with TemporaryDirectory() as cache:
     log, sizes, snaps = commands.init({SAMPLE_DIR1: repo}, 'password', cache,
-        True, 'hostname', {}, b2)
+        True, 'hostname', {'condition': 'never'}, b2)
 
   nose.tools.eq_(len(sizes), 1)
   nose.tools.eq_(len(snaps), 1)
@@ -68,7 +68,7 @@ def run_init_error(repo, b2):
       SAMPLE_DIR2: repo, #error - cannot backup on the same repo
       }
     log, sizes, snaps = commands.init(configs, 'password', cache, False,
-        'hostname', {}, b2)
+        'hostname', {'condition': 'never'}, b2)
 
   assert 'ERROR during initialization' in buf.read()
 
@@ -90,7 +90,7 @@ def run_init_multiple(repo1, repo2, b2):
 
   with TemporaryDirectory() as cache:
     log, sizes, snaps = commands.init(configs, 'password', cache, True,
-        'hostname', {}, b2)
+        'hostname', {'condition': 'never'}, b2)
 
   nose.tools.eq_(len(sizes), 2)
   #assert sizes[0] != 0
@@ -152,9 +152,9 @@ def run_update(repo, b2):
 
   with TemporaryDirectory() as cache:
     log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
-        cache, True, 'hostname', {}, b2)
+        cache, True, 'hostname', {'condition': 'never'}, b2)
     log2, sizes2, snaps2 = commands.update({SAMPLE_DIR1: repo}, 'password',
-        cache, 'hostname', {}, b2, {'last': 1}, period=None)
+        cache, 'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
   #assert sizes1[0] != 0
@@ -195,9 +195,9 @@ def run_update_multiple(repo1, repo2, b2):
 
   with TemporaryDirectory() as cache:
     log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
-        'hostname', {}, b2)
+        'hostname', {'condition': 'never'}, b2)
     log2, sizes2, snaps2 = commands.update(configs, 'password', cache,
-        'hostname', {}, b2, {'last': 1}, period=None)
+        'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None)
 
   nose.tools.eq_(len(sizes1), 2)
   #assert sizes1[0] != 0
@@ -250,13 +250,13 @@ def run_update_error(repo1, repo2, b2):
       SAMPLE_DIR2: repo2,
       }
     log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
-        'hostname', {}, b2)
+        'hostname', {'condition': 'never'}, b2)
     configs = {
       SAMPLE_DIR1: repo1,
       SAMPLE_DIR2: repo2 + '-error', #this directory does not exist
       }
     log2, sizes2, snaps2 = commands.update(configs, 'password', cache,
-        'hostname', {}, b2, {'last': 1}, period=None)
+        'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None)
 
   assert 'ERROR during update' in buf.read()
 
@@ -291,9 +291,9 @@ def run_check(repo, b2):
 
   with TemporaryDirectory() as cache, LogCapture('baker') as buf:
     log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
-        cache, True, 'hostname', {}, b2)
+        cache, True, 'hostname', {'condition': 'never'}, b2)
     log2, sizes2, snaps2 = commands.check({SAMPLE_DIR1: repo}, 'password',
-        cache, 'hostname', {}, b2, alarm=1000, period=None)
+        cache, 'hostname', {'condition': 'never'}, b2, alarm=1000, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
   #assert sizes1[0] != 0
@@ -322,10 +322,10 @@ def run_check_alarm(repo, b2):
 
   with TemporaryDirectory() as cache, LogCapture('baker') as buf:
     log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
-        cache, True, 'hostname', {}, b2)
+        cache, True, 'hostname', {'condition': 'never'}, b2)
     time.sleep(1.1) #reach alarm condition
     log2, sizes2, snaps2 = commands.check({SAMPLE_DIR1: repo}, 'password',
-        cache, 'hostname', {}, b2, alarm=1, period=None)
+        cache, 'hostname', {'condition': 'never'}, b2, alarm=1, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
   #assert sizes1[0] != 0
@@ -361,10 +361,10 @@ def run_check_multiple(repo1, repo2, b2):
 
   with TemporaryDirectory() as cache, LogCapture('baker') as buf:
     log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
-        'hostname', {}, b2)
+        'hostname', {'condition': 'never'}, b2)
     time.sleep(1.1)
     log2, sizes2, snaps2 = commands.check(configs, 'password', cache,
-        'hostname', {}, b2, alarm=1, period=None)
+        'hostname', {'condition': 'never'}, b2, alarm=1, period=None)
 
   nose.tools.eq_(len(sizes1), 2)
   #assert sizes1[0] != 0
@@ -412,13 +412,13 @@ def run_check_error(repo1, repo2, b2):
       SAMPLE_DIR2: repo2,
       }
     log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
-        'hostname', {}, b2)
+        'hostname', {'condition': 'never'}, b2)
     configs = {
       SAMPLE_DIR1: repo1,
       SAMPLE_DIR2: repo2 + '-error', #this directory does not exist
       }
     log2, sizes2, snaps2 = commands.check(configs, 'password', cache,
-        'hostname', {}, b2, alarm=0, period=None)
+        'hostname', {'condition': 'never'}, b2, alarm=0, period=None)
 
   assert 'ERROR during check' in buf.read()
 
