@@ -48,7 +48,9 @@ def run_restic(global_options, subcmd, subcmd_options, password=None,
 
   '''
 
-  assert RESTIC_BIN, "The executable `restic' must be available on your ${PATH}"
+  if not RESTIC_BIN:
+    raise RuntimeError("The executable `restic' must be available " \
+        "on your ${PATH}")
 
   env = copy.copy(os.environ)
   if password: env.setdefault('RESTIC_PASSWORD', password)
@@ -65,10 +67,12 @@ def _assert_b2_setup(repo):
   '''Checks if B2 credentials are setup correctly'''
 
   if repo.startswith('b2:'):
-    assert 'B2_ACCOUNT_ID' in os.environ, "You must setup ${B2_ACCOUNT_ID} " \
-        "to use a BackBlaze B2 repository"
-    assert 'B2_ACCOUNT_KEY' in os.environ, "You must setup ${B2_ACCOUNT_KEY}" \
-        " to use a BackBlaze B2 repository"
+    if 'B2_ACCOUNT_ID' not in os.environ:
+      raise RuntimeError("You must setup ${B2_ACCOUNT_ID} to use a " \
+          "BackBlaze B2 repository")
+    if 'B2_ACCOUNT_KEY' not in os.environ:
+      raise RuntimeError("You must setup ${B2_ACCOUNT_KEY} to use a " \
+          "BackBlaze B2 repository")
 
 
 def version():

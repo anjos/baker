@@ -186,29 +186,30 @@ def main(user_input=None):
 
   # check some config variables
   for dire, repo in config.items():
-    assert os.path.exists(dire)
+    if not os.path.exists(dire):
+      raise RuntimeError('Path to backup `%s\' does not exist' % dire)
     logger.info(" - (folder) %s -> %s (repo)", dire, repo)
 
   # parse e-mail details
   email = {}
   if args['--email']: #sending e-mails
     logger.info('Sending **real** e-mails:')
-    assert args['--email-sender'], 'You must set --email-sender to send ' \
-        'e-mails'
+    if not args['--email-sender']:
+      raise RuntimeError('You must set --email-sender to send e-mails')
     logger.info(' - Sender: %s', args['--email-sender'])
-    assert args['--email-receiver'], 'You must set --email-receiver to send' \
-        'e-mails'
+    if not args['--email-receiver']:
+      raise RuntimeError('You must set --email-receiver to send e-mails')
     logger.info(' - Receivers: %s', ', '.join(args['--email-receiver']))
-    assert args['--email-server'], 'You must set --email-server to send' \
-        'e-mails'
+    if not args['--email-server']:
+      raise RuntimeError('You must set --email-server to send e-mails')
     logger.info(' - Server: %s:%s', args['--email-server'], args['--email-port'])
-    assert args['--email-port'], 'You must set --email-port to send' \
-        'e-mails'
-    assert args['--email-username'], 'You must set --email-username to send' \
-        'e-mails'
+    if not args['--email-port']:
+      raise RuntimeError('You must set --email-port to send e-mails')
+    if not args['--email-username']:
+      raise RuntimeError('You must set --email-username to send e-mails')
     logger.info(' - Username: %s', args['--email-username'])
-    assert args['--email-password'], 'You must set --email-password to send' \
-        'e-mails'
+    if not args['--email-password']:
+      raise RuntimeError('You must set --email-password to send e-mails')
     logger.info(' - Password: ********')
     email['sender'] = args['--email-sender']
     email['receiver'] = args['--email-receiver']
@@ -221,7 +222,9 @@ def main(user_input=None):
 
   # verify cache
   if args['--cache'] is not None:
-    assert os.path.exists(args['--cache'])
+    if not os.path.exists(args['--cache']):
+      raise RuntimeError('Path to use for caching `%s\' does not exist' % \
+          args['--cache'])
     logger.info("Caching restic requests at: %s", args['--cache'])
 
   if args['init']:

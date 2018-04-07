@@ -37,7 +37,8 @@ def run_b2(args, mask=None):
 
   '''
 
-  assert B2_BIN, "The executable `b2' must be available on your ${PATH}"
+  if not B2_BIN:
+    raise RuntimeError("The executable `b2' must be available on your ${PATH}")
   return run_cmdline([B2_BIN] + args, mask=mask)
 
 
@@ -303,9 +304,11 @@ def setup(b2_id=None, b2_key=None):
 
   if b2_info is None:
     b2_info = get_account_info()
-    assert b2_info, 'Required B2 backend could not be setup! You may either ' \
-        'set the environment variables B2_ACCOUNT_ID/B2_ACCOUNT_KEY or ' \
-        'call this method with the correct values'
+    if not b2_info:
+      raise RuntimeError('Required B2 backend could not be setup! You may ' \
+          'either set the environment variables ' \
+          'B2_ACCOUNT_ID/B2_ACCOUNT_KEY or call this method with the ' \
+          'correct values')
 
   # reset the enviroment to make sure we're in sync with restic's cmdline
   os.environ['B2_ACCOUNT_ID'] = b2_info['accountId']
