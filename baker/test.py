@@ -107,3 +107,30 @@ def test_restic_forget():
   nose.tools.eq_(len(data2), 1)
   nose.tools.eq_(data2[0]['parent'], data1[0]['id'])
   assert data2[0]['id'] != data1[0]['id']
+
+
+def test_restic_rebuild_index():
+
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    restic.init(d, [], 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    out = restic.rebuild_index(d, [], 'password', cache)
+
+  messages = out.split('\n')[:-1] #removes last end-of-line
+  nose.tools.eq_(len(messages), 6)
+  nose.tools.eq_(messages[0], 'counting files in repo')
+  nose.tools.eq_(messages[3], 'finding old index files')
+  nose.tools.eq_(messages[-1], 'remove 1 old index files')
+
+
+def test_restic_prune():
+
+  with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    restic.init(d, [], 'password', cache)
+    restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
+    out = restic.prune(d, [], 'password', cache)
+
+  messages = out.split('\n')[:-1] #removes last end-of-line
+  nose.tools.eq_(len(messages), 20)
+  nose.tools.eq_(messages[0], 'counting files in repo')
+  nose.tools.eq_(messages[-1], 'done')

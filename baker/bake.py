@@ -8,7 +8,7 @@ Usage: %(prog)s [-v...] init [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 <password> <config> [<config> ...]
        %(prog)s [-v...] update [--b2-account-id=<id>] [--b2-account-key=<key>]
-                [--hostname=<name>] [--cache=<dir>] [--keep=<kept>]
+                [--hostname=<name>] [--cache=<dir>] [--keep=<kept>] [--recover]
                 [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 [--run-daily-at=<hour>] <password> <config> [<config> ...]
        %(prog)s [-v...] check [--b2-account-id=<id>] [--b2-account-key=<key>]
@@ -97,7 +97,7 @@ Options:
                                Use ``always`` to always send e-mails. Use
                                ``onerror`` to send e-mails only if an error
                                condition is reached. [default: never]
-  -r, --email-sender=<name>    Name/e-mail of the person that will appear as
+  -s, --email-sender=<name>    Name/e-mail of the person that will appear as
                                the sender of the messages. This flag expects
                                entries in the format "John Doe <jd@ex.com>" or
                                "jd@ex.com"
@@ -113,6 +113,8 @@ Options:
   -S, --email-server=<host>    Name of the SMTP server to use for sending the
                                message [default: smtp.gmail.com]
   -P, --email-port=<port>      Port to use on the server [default: 587]
+  -R, --recover                If set, will first re-build the indexes and then
+                               perform backup followed by a prune.
 
 
 Examples:
@@ -290,6 +292,7 @@ def main(user_input=None):
           b2_cred,
           keep,
           args['--run-daily-at'],
+          bool(args['--recover']),
           )
     except Exception as e:
       raise RuntimeError('Unexpected error was not properly handled: %s' % \

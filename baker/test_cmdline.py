@@ -154,7 +154,8 @@ def run_update(repo, b2):
     log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
         cache, True, 'hostname', {'condition': 'never'}, b2)
     log2, sizes2, snaps2 = commands.update({SAMPLE_DIR1: repo}, 'password',
-        cache, 'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None)
+        cache, 'hostname', {'condition': 'never'}, b2, {'last': 1},
+        period=None, recover=False)
 
   nose.tools.eq_(len(sizes1), 1)
   #assert sizes1[0] != 0
@@ -184,6 +185,46 @@ def test_update_local():
     run_update(d, {})
 
 
+def run_update_recover(repo, b2):
+
+  with TemporaryDirectory() as cache:
+    log1, sizes1, snaps1 = commands.init({SAMPLE_DIR1: repo}, 'password',
+        cache, True, 'hostname', {'condition': 'never'}, b2)
+    log2, sizes2, snaps2 = commands.update({SAMPLE_DIR1: repo}, 'password',
+        cache, 'hostname', {'condition': 'never'}, b2, {'last': 1},
+        period=None, recover=True)
+
+  nose.tools.eq_(len(sizes1), 1)
+  #assert sizes1[0] != 0
+  nose.tools.eq_(len(snaps1), 1)
+  nose.tools.eq_(len(sizes2), 1)
+  #assert sizes2[0] != 0
+  nose.tools.eq_(len(snaps2), 1)
+  assert 'parent' not in snaps1[0]
+  assert 'parent' in snaps2[0]
+  nose.tools.eq_(snaps2[0]['parent'], snaps1[0]['id'])
+
+  messages = log2.split('\n')[:-1] #removes last end-of-line
+
+  if b2:
+    nose.tools.eq_(messages[0], "Using https://api.backblazeb2.com")
+    messages = messages[1:]
+
+  nose.tools.eq_(messages[0], 'counting files in repo')
+  assert messages[6].startswith('using parent snapshot')
+  nose.tools.eq_(messages[7], 'scan [%s]' % SAMPLE_DIR1)
+  assert messages[13].startswith('snapshot')
+  assert messages[13].endswith('saved')
+  nose.tools.eq_(messages[14], 'counting files in repo')
+  nose.tools.eq_(messages[33], 'done')
+
+
+def test_update_recover():
+
+  with TemporaryDirectory() as d:
+    run_update_recover(d, {})
+
+
 def run_update_multiple(repo1, repo2, b2):
 
   from collections import OrderedDict
@@ -197,7 +238,8 @@ def run_update_multiple(repo1, repo2, b2):
     log1, sizes1, snaps1 = commands.init(configs, 'password', cache, True,
         'hostname', {'condition': 'never'}, b2)
     log2, sizes2, snaps2 = commands.update(configs, 'password', cache,
-        'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None)
+        'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None,
+        recover=False)
 
   nose.tools.eq_(len(sizes1), 2)
   #assert sizes1[0] != 0
@@ -256,7 +298,8 @@ def run_update_error(repo1, repo2, b2):
       SAMPLE_DIR2: repo2 + '-error', #this directory does not exist
       }
     log2, sizes2, snaps2 = commands.update(configs, 'password', cache,
-        'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None)
+        'hostname', {'condition': 'never'}, b2, {'last': 1}, period=None,
+        recover=False)
 
   assert 'ERROR during update' in buf.read()
 

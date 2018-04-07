@@ -210,6 +210,15 @@ def test_cmdline_update():
   run_update('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
 
 
+def test_cmdline_update_recover():
+
+  # Cleans-up bucket before starting
+  b2.empty_bucket(TEST_BUCKET_NAME)
+
+  from .test_cmdline import run_update_recover
+  run_update_recover('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+
+
 def test_cmdline_update_error():
 
   # Cleans-up bucket before starting

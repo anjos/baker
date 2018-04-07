@@ -162,7 +162,8 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
   return log, sizes, snapshots
 
 
-def update(configs, password, cache, hostname, email, b2_cred, keep, period):
+def update(configs, password, cache, hostname, email, b2_cred, keep, period,
+    recover):
   '''Runs a continuous job (never exits) for keeping the backup updated'''
 
   def job():
@@ -183,6 +184,14 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period):
         if repo.startswith('b2:'): # BackBlaze B2 repository
           log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
 
+        if recover:
+          log += restic.rebuild_index(
+              repository=repo,
+              global_options=[],
+              password=password,
+              cache=cache,
+              )
+
         log += restic.backup(
             directory=dire,
             repository=repo,
@@ -192,6 +201,14 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period):
             password=password,
             cache=cache,
             )
+
+        if recover:
+          log += restic.prune(
+              repository=repo,
+              global_options=[],
+              password=password,
+              cache=cache,
+              )
 
         log += restic.forget(
             repository=repo,
