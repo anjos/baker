@@ -322,7 +322,7 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
         _send_message('check/subject_alarm.txt', 'check/body_alarm.txt',
             'check/body_alarm.html', context, email)
 
-      else:
+      elif period is None:
         # it is a single check, always send an e-mail
         _send_message('check/subject_success.txt', 'check/body_success.txt',
             'check/body_success.html', context, email)
