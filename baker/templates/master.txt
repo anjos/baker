@@ -15,7 +15,7 @@ The current cache size is {{ cache|du_dir }} bytes.
 Here is the snapshot information currently available:
 {% for path in snapshots|groupby('paths') %}
   ## path: {{ path.grouper|join(', ') }} ##
-  {% for k in path.list %}   * {{ k['time']|format_datetime }} ({{ k['time']|humanize_time }} ago) short-id: {{ k['short_id'] }}{% endfor %}
+  {% for k in path.list|sort(reverse=True,attribute='time') %}   * {{ k['time']|format_datetime }} ({{ k['time']|humanize_time }} ago) short-id: {{ k['short_id'] }}{% endfor %}
 {% endfor %}
 {%- endif %}
 {%- if trace -%}

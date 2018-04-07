@@ -68,7 +68,7 @@
     <p><b>Path</b>: {{ path.grouper|join(', ') }}</p>
       <table>
         <tr><th>Date</th><th>Time delta</th><th>Short identifier</th></tr>
-        {% for k in path.list %}
+        {% for k in path.list|sort(reverse=True,attribute='time') %}
           <tr>
             <td>{{ k['time']|format_datetime }}</td>
             <td>{{ k['time']|humanize_time }}</td>
