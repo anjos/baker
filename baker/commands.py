@@ -58,8 +58,9 @@ def _send_message(subject_template, body_template_text, body_template_html,
 
   msg = reporter.Email(subject, body_text, body_html, sender, receiver)
 
-  if (email['condition'] == 'always') or (email['condition'] == 'onerror' \
-      and error):
+  if ('condition' in email) and \
+      ((email['condition'] == 'always') or \
+        (email['condition'] == 'onerror' and error)):
     msg.send(email['server'], email['port'], email['username'],
       email['password'])
   else:
