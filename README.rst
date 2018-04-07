@@ -114,6 +114,25 @@ To build a readily deployable docker image, do::
    anjos/baker:vX.Y.Z``.
 
 
+Rationale
+---------
+
+You'll use baker in 4 different modes:
+
+1. You'll ``init`` your repositories once. This is a potentially long phase
+   that may last for several days. Configure it so that it sends you an e-mail
+   once the first snapshot is created on the remote bucket (``--email=always``)
+2. You'll use ``update`` every day at least, to keep your system properly
+   backed-up. Don't configure e-mail sending with updates as that risks being
+   tedious. Set that to ``--email=onerror``.
+3. You'll use ``check`` once a week at least, to check the sanity of your
+   repositories. Don't configure e-mail sending with checks as that risks being
+   tedious. Set that to ``--email=onerror``.
+4. Setup a couple of extra containers that allow you to force an update or a
+   check, with e-mail sending enabled (``--email=always``). Use this
+   occasionally to launch an specific update or check.
+
+
 Deployment
 ----------
 

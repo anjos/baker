@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def _send_message(subject_template, body_template_text, body_template_html,
-    context, email):
+    context, email, error):
   '''Sends an e-mail message or logs only'''
 
   env = jinja2.Environment(loader=jinja2.PackageLoader(__name__, 'templates'),
@@ -58,7 +58,8 @@ def _send_message(subject_template, body_template_text, body_template_html,
 
   msg = reporter.Email(subject, body_text, body_html, sender, receiver)
 
-  if email:
+  if (email['condition'] == 'always') or (email['condition'] == 'onerror' \
+      and error):
     msg.send(email['server'], email['port'], email['username'],
       email['password'])
   else:
@@ -143,7 +144,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
           hostname=hostname,
           )
       _send_message('init/subject_success.txt', 'init/body_success.txt',
-          'init/body_success.html', context, email)
+          'init/body_success.html', context, email, error=False)
 
   except Exception as e:
     logger.error('Error at initialization:\n%s', traceback.format_exc())
@@ -155,7 +156,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
         hostname=hostname,
         )
     _send_message('init/subject_error.txt', 'init/body_error.txt',
-        'init/body_error.html', context, email)
+        'init/body_error.html', context, email, error=True)
 
   return log, sizes, snapshots
 
@@ -231,7 +232,7 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period):
           hostname=hostname,
           )
       _send_message('update/subject_success.txt', 'update/body_success.txt',
-          'update/body_success.html', context, email)
+          'update/body_success.html', context, email, error=False)
 
     except Exception as e:
       logger.error('Error at update:\n%s', traceback.format_exc())
@@ -243,7 +244,7 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period):
           hostname=hostname,
           )
       _send_message('update/subject_error.txt', 'update/body_error.txt',
-          'update/body_error.html', context, email)
+          'update/body_error.html', context, email, error=True)
 
     return log, sizes, snapshots
 
@@ -320,12 +321,12 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
       if alarm_condition:
         context['alarm'] = alarm
         _send_message('check/subject_alarm.txt', 'check/body_alarm.txt',
-            'check/body_alarm.html', context, email)
+            'check/body_alarm.html', context, email, error=True)
 
-      elif period is None:
+      else:
         # it is a single check, always send an e-mail
         _send_message('check/subject_success.txt', 'check/body_success.txt',
-            'check/body_success.html', context, email)
+            'check/body_success.html', context, email, error=False)
 
     except Exception as e:
       logger.error('Error at update:\n%s', traceback.format_exc())
@@ -337,7 +338,7 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
           hostname=hostname,
           )
       _send_message('check/subject_error.txt', 'check/body_error.txt',
-          'check/body_error.html', context, email)
+          'check/body_error.html', context, email, error=True)
 
     return log, sizes, snapshots
 

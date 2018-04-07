@@ -5,15 +5,15 @@
 
 Usage: %(prog)s [-v...] init [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--hostname=<name>] [--cache=<dir>] [--overwrite]
-                [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
+                [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 <password> <config> [<config> ...]
        %(prog)s [-v...] update [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--hostname=<name>] [--cache=<dir>] [--keep=<kept>]
-                [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
+                [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 [--run-daily-at=<hour>] <password> <config> [<config> ...]
        %(prog)s [-v...] check [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--hostname=<name>] [--cache=<dir>] [--alarm=<seconds>]
-                [--email --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
+                [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 [--run-daily-at=<hour>] <password> <config> [<config> ...]
        %(prog)s --help
        %(prog)s --version
@@ -91,8 +91,12 @@ Options:
                                repository, overwrites contents of an existing
                                directory in case any exist. Use this option
                                with care.
-  -e, --email                  If set, e-mail agents responsible every time
-                               action occurs
+  -e, --email=<cond>           If set, sents e-mails every time an action
+                               finishes processing, depending on the set
+                               condition.  Use ``never`` to never send e-mails.
+                               Use ``always`` to always send e-mails. Use
+                               ``onerror`` to send e-mails only if an error
+                               condition is reached. [default: never]
   -r, --email-sender=<name>    Name/e-mail of the person that will appear as
                                the sender of the messages. This flag expects
                                entries in the format "John Doe <jd@ex.com>" or
@@ -212,9 +216,18 @@ def main(user_input=None):
     logger.info(" - (folder) %s -> %s (repo)", dire, repo)
 
   # parse e-mail details
-  email = {}
-  if args['--email']: #sending e-mails
-    logger.info('Sending **real** e-mails:')
+  email = dict(
+      condition = args['--email'],
+      sender = args['--email-sender'],
+      receiver = args['--email-receiver'],
+      server = args['--email-server'],
+      port = args['--email-port'],
+      username = args['--email-username'],
+      password = args['--email-password'],
+      )
+
+  if args['--email'] != 'never': #check
+    logger.info('Sending **real** e-mails (%s):', args['--email'])
     if not args['--email-sender']:
       raise RuntimeError('You must set --email-sender to send e-mails')
     logger.info(' - Sender: %s', args['--email-sender'])
@@ -223,7 +236,8 @@ def main(user_input=None):
     logger.info(' - Receivers: %s', ', '.join(args['--email-receiver']))
     if not args['--email-server']:
       raise RuntimeError('You must set --email-server to send e-mails')
-    logger.info(' - Server: %s:%s', args['--email-server'], args['--email-port'])
+    logger.info(' - Server: %s:%s', args['--email-server'],
+        args['--email-port'])
     if not args['--email-port']:
       raise RuntimeError('You must set --email-port to send e-mails')
     if not args['--email-username']:
@@ -232,12 +246,6 @@ def main(user_input=None):
     if not args['--email-password']:
       raise RuntimeError('You must set --email-password to send e-mails')
     logger.info(' - Password: ********')
-    email['sender'] = args['--email-sender']
-    email['receiver'] = args['--email-receiver']
-    email['server'] = args['--email-server']
-    email['port'] = args['--email-port']
-    email['username'] = args['--email-username']
-    email['password'] = args['--email-password']
   else:
     logger.info("Only logging e-mails, **not** sending anything")
 
