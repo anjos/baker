@@ -24,7 +24,7 @@ done
 
 for pyver in "${python_versions[@]}"; do
   for p in "${python_pkgs[@]}"; do
-    conda build --python=$pyver $p
-    ${script_dir}/conda-build-docker.sh --python=$pyver /work/$p
+    conda build --no-test --python=$pyver $p
+    ${script_dir}/conda-build-docker.sh --no-test --python=$pyver /work/$p
   done
 done

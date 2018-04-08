@@ -171,7 +171,7 @@ def run_cmdline(cmd, env=None, mask=None):
 
   total = time.time() - start
 
-  logger.debug('command took %s' % human_time(total))
+  logger.info('command took %s' % human_time(total))
 
   out = out.decode()
 

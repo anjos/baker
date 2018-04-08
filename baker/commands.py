@@ -65,7 +65,7 @@ def _send_message(subject_template, body_template_text, body_template_html,
     msg.send(email['server'], email['port'], email['username'],
       email['password'])
   else:
-    logger.info(msg.message())
+    logger.debug(msg.message())
 
 
 def init(configs, password, cache, overwrite, hostname, email, b2_cred):

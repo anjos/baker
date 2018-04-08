@@ -134,7 +134,7 @@ def test_init_multiple_local():
 def run_init_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
-    retval = bake.main(options + ['-vv', 'init', '--overwrite',
+    retval = bake.main(options + ['-vvv', 'init', '--overwrite',
       '--cache=%s' % cache, '--hostname=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
@@ -210,13 +210,14 @@ def run_update_recover(repo, b2):
     nose.tools.eq_(messages[0], "Using https://api.backblazeb2.com")
     messages = messages[1:]
 
-  nose.tools.eq_(messages[0], 'counting files in repo')
-  assert messages[6].startswith('using parent snapshot')
-  nose.tools.eq_(messages[7], 'scan [%s]' % SAMPLE_DIR1)
-  assert messages[13].startswith('snapshot')
-  assert messages[13].endswith('saved')
-  nose.tools.eq_(messages[14], 'counting files in repo')
-  nose.tools.eq_(messages[33], 'done')
+  nose.tools.eq_(messages[0], 'successfully removed locks')
+  nose.tools.eq_(messages[1], 'counting files in repo')
+  assert messages[7].startswith('using parent snapshot')
+  nose.tools.eq_(messages[8], 'scan [%s]' % SAMPLE_DIR1)
+  assert messages[14].startswith('snapshot')
+  assert messages[14].endswith('saved')
+  nose.tools.eq_(messages[15], 'counting files in repo')
+  nose.tools.eq_(messages[34], 'done')
 
 
 def test_update_recover():
@@ -313,10 +314,10 @@ def test_update_error():
 def run_update_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
-    retval1 = bake.main(options + ['-vv', 'init', '--overwrite',
+    retval1 = bake.main(options + ['-vvv', 'init', '--overwrite',
       '--cache=%s' % cache, '--hostname=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
-    retval2 = bake.main(options + ['-vv', 'update', '--hostname=hostname',
+    retval2 = bake.main(options + ['-vvv', 'update', '--hostname=hostname',
       '--cache=%s' % cache, '--keep=1|0|0|0|0|0', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
@@ -475,10 +476,10 @@ def test_check_error():
 def run_check_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
-    retval1 = bake.main(options + ['-vv', 'init', '--overwrite',
+    retval1 = bake.main(options + ['-vvv', 'init', '--overwrite',
       '--cache=%s' % cache, '--hostname=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
-    retval2 = bake.main(options + ['-vv', 'check', '--hostname=hostname',
+    retval2 = bake.main(options + ['-vvv', 'check', '--hostname=hostname',
       '--cache=%s' % cache, '--alarm=1000', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 

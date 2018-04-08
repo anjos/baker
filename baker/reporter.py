@@ -234,10 +234,11 @@ def humanize_time(dt):
 
 def humanize_bytes(v):
   '''Returns an approximate representation of the value in kB, MB, GB...'''
-  power = float(2**10) #1024
+  power = 2**10 #1024
+  v = float(v)
   n = 0
   power_dict = {0 : '', 1: 'kilo', 2: 'mega', 3: 'giga', 4: 'tera'}
-  while size > power:
-    size /= power
+  while v > power:
+    v /= power
     n += 1
-  return '%.2f %sbytes' % (size, power_dict[n])
+  return '%.2f %sbytes' % (v, power_dict[n])
