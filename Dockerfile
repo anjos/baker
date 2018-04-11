@@ -1,11 +1,12 @@
 FROM frolvlad/alpine-glibc:alpine-3.7
 ARG VERSION
+ENV TZ=Europe/Zurich
 RUN CONDA_DIR="/opt/conda" && \
     CONDA_VERSION="4.4.10" && \
     CONDA_MD5_CHECKSUM="bec6203dbb2f53011e974e9bf4d46e93" && \
     \
     apk add --no-cache --virtual=.build-dependencies wget bash && \
-    apk add --no-cache ca-certificates && \
+    apk add --no-cache ca-certificates tzdata && \
     \
     mkdir -p "$CONDA_DIR" && \
     wget "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh" -O miniconda.sh && \
@@ -23,7 +24,8 @@ RUN CONDA_DIR="/opt/conda" && \
     rm -f .build-dependencies && \
     \
     mkdir -p "$CONDA_DIR/locks" && \
-    chmod 777 "$CONDA_DIR/locks"
+    chmod 777 "$CONDA_DIR/locks" && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV PATH="/opt/conda/bin:${PATH}"
 ENTRYPOINT ["/opt/conda/bin/bake"]
 CMD ["--help"]
