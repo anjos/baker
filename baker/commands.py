@@ -133,7 +133,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
 
       if repo.startswith('b2:'):
         info = b2.get_bucket(repo[3:])
-        sizes.append(0) #info['totalSize']
+        sizes.append(info['totalSize'])
       else:
         sizes.append(utils.get_size(repo))
 
@@ -175,15 +175,10 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period,
       os.environ.setdefault('B2_ACCOUNT_KEY', b2_cred['key'])
 
     log = ''
-    sizes = []
-    snapshots = []
 
     try:
 
       for dire, repo in configs.items():
-
-        if repo.startswith('b2:'): # BackBlaze B2 repository
-          log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
 
         if recover:
           log += restic.unlock(
@@ -232,28 +227,13 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period,
         log += restic.check(
             repository=repo,
             global_options=[],
-            password=password,
-            cache=cache,
-            )
-
-        if repo.startswith('b2:'):
-          info = b2.get_bucket(repo[3:])
-          sizes.append(0) #info['totalSize']
-        else:
-          sizes.append(utils.get_size(repo))
-
-        snapshots += restic.snapshots(
-            repository=repo,
-            global_options=[],
-            hostname=hostname,
+            thorough=recover,
             password=password,
             cache=cache,
             )
 
       context = dict(
           configs=configs,
-          sizes=sizes,
-          snapshots=snapshots,
           cache=cache,
           log=log,
           hostname=hostname,
@@ -273,7 +253,7 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period,
       _send_message('update/subject_error.txt', 'update/body_error.txt',
           'update/body_error.html', context, email, error=True)
 
-    return log, sizes, snapshots
+    return log
 
 
   if period is None:
@@ -311,16 +291,9 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
         if repo.startswith('b2:'): # BackBlaze B2 repository
           log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
 
-        log += restic.check(
-            repository=repo,
-            global_options=[],
-            password=password,
-            cache=cache,
-            )
-
         if repo.startswith('b2:'):
           info = b2.get_bucket(repo[3:])
-          sizes.append(0) #info['totalSize']
+          sizes.append(info['totalSize'])
         else:
           sizes.append(utils.get_size(repo))
 

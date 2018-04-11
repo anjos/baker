@@ -155,6 +155,7 @@ Examples:
 import os
 import sys
 import socket
+import collections
 
 import logging
 logger = logging.getLogger(__name__)
@@ -196,7 +197,7 @@ def main(user_input=None):
   logger.info(" - %s", b2.version().split('\n')[0])
 
   # do some commandline parsing
-  config = dict([k.split('|') for k in args['<config>']])
+  config = collections.OrderedDict([k.split('|') for k in args['<config>']])
 
   # B2 setup, if required
   b2_cred = {}

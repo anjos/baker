@@ -66,6 +66,9 @@
     <h4>Snapshots</h4>
     {% for path in snapshots|groupby('paths') -%}
     <p><b>Path</b>: {{ path.grouper|join(', ') }}</p>
+    {% if sizes is defined and sizes[loop.index0] != 0 %}
+    <p><b>Size</b>: {{ sizes[loop.index0]|humanize_bytes }}</p>
+    {% endif %}
     {% if alarm is defined -%}
     <p><b class="error">ALARM:</b> The latest snapshot for this repo dates from <b class="error">{{ path.list[0]['time']|humanize_time }}</b> ago.</p>
     {%- endif %}

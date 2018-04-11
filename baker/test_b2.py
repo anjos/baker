@@ -47,6 +47,12 @@ def test_list_buckets():
   assert TEST_BUCKET_NAME in output
 
 
+def test_get_bucket():
+
+  output = b2.get_bucket(TEST_BUCKET_NAME)
+  assert 'totalSize' in output
+
+
 def test_list_bucket_contents():
 
   # Cleans-up bucket before starting
@@ -100,7 +106,7 @@ def test_restic_check():
   with TemporaryDirectory() as cache:
     restic.init(repo, [], 'password', cache)
     restic.backup(SAMPLE_DIR1, repo, [], 'hostname', [], 'password', cache)
-    out = restic.check(repo, [], 'password', cache)
+    out = restic.check(repo, [], True, 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 5)

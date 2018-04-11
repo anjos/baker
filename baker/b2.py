@@ -144,7 +144,7 @@ def get_bucket(name):
   '''
 
   # --showSize will include the size in version 1.1.0+
-  return json.loads(run_b2(['get-bucket', name]))
+  return json.loads(run_b2(['get-bucket', '--showSize', name]))
 
 
 def remove_bucket(name):

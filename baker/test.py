@@ -59,7 +59,7 @@ def test_restic_check():
   with TemporaryDirectory() as d, TemporaryDirectory() as cache:
     restic.init(d, [], 'password', cache)
     restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
-    out = restic.check(d, [], 'password', cache)
+    out = restic.check(d, [], False, 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 5)

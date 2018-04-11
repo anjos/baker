@@ -193,7 +193,7 @@ def forget(repository, global_options, hostname, prune, keep, password, cache):
       'forget', ['--host', hostname] + options, password, cache)
 
 
-def check(repository, global_options, password, cache):
+def check(repository, global_options, thorough, password, cache):
   '''Checks the sanity of a restic repository
 
   This procedure is recommended after each forget operation
@@ -209,6 +209,9 @@ def check(repository, global_options, password, cache):
       ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
       this will be included automatically
 
+    thorough (bool): If set to ``True``, then don't use cached data for a
+      check. Otherwise, it does.
+
     password (str): The restic repository password
 
     cache (str): The path to the cache directory to use for restic. If not set,
@@ -218,7 +221,10 @@ def check(repository, global_options, password, cache):
 
   _assert_b2_setup(repository)
 
-  options = ['--check-unused']
+  if thorough:
+    options = ['--check-unused']
+  else:
+    options = ['--with-cache']
   return run_restic(['--repo', repository] + global_options,
       'check', options, password, cache)
 

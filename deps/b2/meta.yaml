@@ -1,17 +1,13 @@
-{% set version = "1.1.0" %}
-
 package:
   name: b2
-  version: {{ version }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '').lstrip('v') + 'p' + environ.get('GIT_DESCRIBE_NUMBER', '') }}
 
 source:
   git_url: https://github.com/Backblaze/B2_Command_Line_Tool
-  git_rev: v{{ version }}
-  patches:
-    - issue-427.patch  # affects test suite if run as root
+  git_rev: bbe4b73fc1a21e3476235e603a2fde8ff8a09ab3
 
 build:
-  number: 1
+  number: 0
   preserve_egg_dir: True
   entry_points:
     - b2 = b2.console_tool:main
