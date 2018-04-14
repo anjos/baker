@@ -28,6 +28,7 @@ requirements:
     - b2
     - schedule
     - jinja2
+    - requests
 
 test:
   imports:
