@@ -288,14 +288,15 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
 
       for dire, repo in configs.items():
 
-        if repo.startswith('b2:'): # BackBlaze B2 repository
-          log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
+        if period is None: #calling a single time
+          if repo.startswith('b2:'): # BackBlaze B2 repository
+              log += b2.authorize_account(b2_cred['id'], b2_cred['key'])
 
-        if repo.startswith('b2:'):
-          info = b2.get_bucket(repo[3:])
-          sizes.append(info['totalSize'])
-        else:
-          sizes.append(utils.get_size(repo))
+          if repo.startswith('b2:'):
+            info = b2.get_bucket(repo[3:])
+            sizes.append(info['totalSize'])
+          else:
+            sizes.append(utils.get_size(repo))
 
         snapshots += restic.snapshots(
             repository=repo,
