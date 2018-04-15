@@ -15,7 +15,7 @@ The current cache size is {{ cache|du_dir|humanize_bytes }}.
 Here is the snapshot information currently available:
 {% for path in snapshots|groupby('paths') %}
   ## path: {{ path.grouper|join(', ') }} ##
-  {% if sizes is defined and sizes[loop.index0] != 0 -%}
+  {% if sizes is defined and len(sizes) > loop.index0 and sizes[loop.index0] != 0 -%}
   ## size: {{ sizes[loop.index0]|humanize_bytes }} ##
   {% endif %}{% if alarm is defined -%}
   !! ALARM: The latest snapshot for this repo dates from {{ path.list[0]['time']|humanize_time }} ago.
