@@ -257,7 +257,7 @@ def update(configs, password, cache, hostname, email, b2_cred, keep, period,
 
 
   if period is None:
-    wait=60
+    wait=15
     logger.info('Scheduling backup job to run only once')
     logger.info('Waiting %d seconds before starting...', wait)
     time.sleep(wait)
@@ -348,7 +348,7 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
 
 
   if period is None:
-    wait=60
+    wait=15
     logger.info('Scheduling check job to run only once')
     logger.info('Waiting %d seconds before starting...', wait)
     time.sleep(wait)
