@@ -37,7 +37,7 @@ def run_init(repo, b2):
 
   nose.tools.eq_(len(sizes), 1)
   nose.tools.eq_(len(snaps), 1)
-  #assert sizes[0] != 0
+  assert sizes[repo] != 0
   nose.tools.eq_(snaps[0]['paths'], [SAMPLE_DIR1])
   assert 'parent' not in snaps[0] #it is the first snapshot of repository
 
@@ -93,8 +93,8 @@ def run_init_multiple(repo1, repo2, b2):
         'hostname', {'condition': 'never'}, b2)
 
   nose.tools.eq_(len(sizes), 2)
-  #assert sizes[0] != 0
-  #assert sizes[1] != 0
+  assert sizes[repo1] != 0
+  assert sizes[repo2] != 0
 
   nose.tools.eq_(len(snaps), 2)
   nose.tools.eq_(snaps[0]['paths'], [SAMPLE_DIR1])
@@ -158,7 +158,7 @@ def run_update(repo, b2):
         period=None, recover=False)
 
   nose.tools.eq_(len(sizes1), 1)
-  assert sizes1[0] != 0
+  assert sizes1[repo] != 0
   nose.tools.eq_(len(snaps1), 1)
   assert 'parent' not in snaps1[0]
 
@@ -186,7 +186,7 @@ def run_update_recover(repo, b2):
         period=None, recover=True)
 
   nose.tools.eq_(len(sizes1), 1)
-  assert sizes1[0] != 0
+  assert sizes1[repo] != 0
   nose.tools.eq_(len(snaps1), 1)
   assert 'parent' not in snaps1[0]
 
@@ -225,8 +225,8 @@ def run_update_multiple(repo1, repo2, b2):
         recover=False)
 
   nose.tools.eq_(len(sizes1), 2)
-  assert sizes1[0] != 0
-  assert sizes1[1] != 0
+  assert sizes1[repo1] != 0
+  assert sizes1[repo2] != 0
   nose.tools.eq_(len(snaps1), 2)
   assert 'parent' not in snaps1[0]
   assert 'parent' not in snaps1[1]
@@ -308,10 +308,10 @@ def run_check(repo, b2):
         cache, 'hostname', {'condition': 'never'}, b2, alarm=1000, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
-  assert sizes1[0] != 0
+  assert sizes1[repo] != 0
   nose.tools.eq_(len(snaps1), 1)
   nose.tools.eq_(len(sizes2), 1)
-  assert sizes2[0] != 0
+  assert sizes2[repo] != 0
   nose.tools.eq_(len(snaps2), 1)
   nose.tools.eq_(snaps1, snaps2)
 
@@ -337,10 +337,10 @@ def run_check_alarm(repo, b2):
         cache, 'hostname', {'condition': 'never'}, b2, alarm=1, period=None)
 
   nose.tools.eq_(len(sizes1), 1)
-  assert sizes1[0] != 0
+  assert sizes1[repo] != 0
   nose.tools.eq_(len(snaps1), 1)
   nose.tools.eq_(len(sizes2), 1)
-  assert sizes2[0] != 0
+  assert sizes2[repo] != 0
   nose.tools.eq_(len(snaps2), 1)
   nose.tools.eq_(snaps1, snaps2)
 
@@ -374,12 +374,12 @@ def run_check_multiple(repo1, repo2, b2):
         'hostname', {'condition': 'never'}, b2, alarm=1, period=None)
 
   nose.tools.eq_(len(sizes1), 2)
-  assert sizes1[0] != 0
-  assert sizes1[1] != 0
+  assert sizes1[repo1] != 0
+  assert sizes1[repo2] != 0
   nose.tools.eq_(len(snaps1), 2)
   nose.tools.eq_(len(sizes2), 2)
-  assert sizes2[0] != 0
-  assert sizes2[1] != 0
+  assert sizes2[repo1] != 0
+  assert sizes2[repo2] != 0
   nose.tools.eq_(len(snaps2), 2)
   nose.tools.eq_(snaps1, snaps2)
 

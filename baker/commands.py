@@ -76,7 +76,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
     os.environ.setdefault('B2_ACCOUNT_KEY', b2_cred['key'])
 
   log = ''
-  sizes = []
+  sizes = {}
   snapshots = []
 
   try:
@@ -133,9 +133,9 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
 
       if repo.startswith('b2:'):
         info = b2.get_bucket(repo[3:])
-        sizes.append(info['totalSize'])
+        sizes[repo] = info['totalSize']
       else:
-        sizes.append(utils.get_size(repo))
+        sizes[repo] = utils.get_size(repo)
 
       context = dict(
           configs=configs,
@@ -282,7 +282,7 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
       os.environ.setdefault('B2_ACCOUNT_KEY', b2_cred['key'])
 
     log = ''
-    sizes = []
+    sizes = {}
     snapshots = []
 
     try:
@@ -297,9 +297,9 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
 
           if repo.startswith('b2:'):
             info = b2.get_bucket(repo[3:])
-            sizes.append(info['totalSize'])
+            sizes[repo] = info['totalSize']
           else:
-            sizes.append(utils.get_size(repo))
+            sizes[repo] = utils.get_size(repo)
 
         snapshots += restic.snapshots(
             repository=repo,

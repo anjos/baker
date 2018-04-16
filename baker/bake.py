@@ -84,7 +84,7 @@ Options:
                                'weekly', 'monthly' and 'yearly' clean-ups. A
                                value of zero disables that option. Notice we
                                always prune the restic repository
-                               [default: 0|0|7|9|13|3]
+                               [default: 0|0|7|8|12|2]
   -d, --run-daily-at=<hour>    Runs the back-up job daily at the specified
                                time
   -o, --overwrite              During initialization of a new restic

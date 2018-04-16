@@ -51,9 +51,10 @@
 
     {% if configs is defined -%}
     <table>
-      <tr><th>Local path</th><th>Repository</th></tr>
+
+    <tr><th>Local path</th><th>Repository</th>{% if sizes is defined and sizes|length == configs|length %}<th>Size</th>{% endif %}</tr>
       {% for dir, repo in configs.items() %}
-        <tr><td>{{ dir }}</td><td>{{ repo }}</td></tr>
+      <tr><td>{{ dir }}</td><td>{{ repo }}</td>{% if sizes is defined and sizes|length == configs|length %}<td>{{ sizes[repo]|humanize_bytes }}</td>{% endif %}</tr>
       {% endfor %}
     </table>
     {%- endif %}
@@ -66,9 +67,6 @@
     <h4>Snapshots</h4>
     {% for path in snapshots|groupby('paths') -%}
     <p><b>Path</b>: {{ path.grouper|join(', ') }}</p>
-    {% if sizes is defined and sizes|length > loop.index0 and sizes[loop.index0] != 0 %}
-    <p><b>Size</b>: {{ sizes[loop.index0]|humanize_bytes }}</p>
-    {% endif %}
     {% if alarm is defined -%}
     <p><b class="error">ALARM:</b> The latest snapshot for this repo dates from <b class="error">{{ path.list[0]['time']|humanize_time }}</b> ago.</p>
     {%- endif %}

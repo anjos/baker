@@ -3,7 +3,7 @@ Hello,
 {% block action %}Successfully initialized{% endblock action %} {{ configs|length }} repositor{{ configs|bake_pluralize('y','ies') }}:
 {% if configs is defined -%}
 {% for dir, repo in configs.items() %}
-  ## {{ dir }} -> {{ repo -}}
+  ## {{ dir }} -> {{ repo -}}{% if sizes is defined and sizes|length == configs|length %} ({{ sizes[repo]|humanize_bytes }}){% endif %}
 {% endfor -%}
 {%- endif %}
 
@@ -15,9 +15,7 @@ The current cache size is {{ cache|du_dir|humanize_bytes }}.
 Here is the snapshot information currently available:
 {% for path in snapshots|groupby('paths') %}
   ## path: {{ path.grouper|join(', ') }} ##
-  {% if sizes is defined and sizes|length > loop.index0 and sizes[loop.index0] != 0 -%}
-  ## size: {{ sizes[loop.index0]|humanize_bytes }} ##
-  {% endif %}{% if alarm is defined -%}
+  {% if alarm is defined -%}
   !! ALARM: The latest snapshot for this repo dates from {{ path.list[0]['time']|humanize_time }} ago.
   {%- endif %}
   {% for k in path.list|sort(reverse=True,attribute='time') %}   * {{ k['time']|format_datetime }} ({{ k['time']|humanize_time }} ago) short-id: {{ k['short_id'] }}{% endfor %}
