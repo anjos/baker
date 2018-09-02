@@ -63,18 +63,26 @@ To test the package, run the following::
   $ ./bin/nosetests -sv --with-coverage --cover-package=baker
 
 
+If tests fail, it is possible test buckets are kept on your B2 account. To
+remove those (starting with ``baker-test-``), use the following command::
+
+  $ ./bin/remove-test-buckets
+
+
 Conda Builds
 ============
 
 Building dependencies requires you install ``conda-build``. Do the following to
 prepare::
 
-  $ conda install -n root conda-build anaconda-client
+  $ conda install -n base conda-build anaconda-client
 
 Then, you can build dependencies one by one, in order::
 
   $ vi ./scripts/conda-build-all.sh #comment/uncomment what to compile
-  $ ./scripts/conda-build-all.sh
+  $ conda activate base
+  $ #start the docker daemon, if that is not the case
+  (base) $ ./scripts/conda-build-all.sh
 
 .. note::
 
@@ -89,10 +97,10 @@ Anaconda Uploads
 To upload all built dependencies (so you don't have to re-build them
 everytime), do::
 
-  $ anaconda login
+  (base) $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/*-64/restic-*.tar.bz2
-  $ anaconda upload <conda-bld>/*-64/{yapf,logfury,b2,schedule}-*.tar.bz2
+  (base) $ anaconda upload <conda-bld>/*-64/restic-*.tar.bz2
+  (base) $ anaconda upload <conda-bld>/*-64/{yapf,logfury,b2,schedule}-*.tar.bz2
 
 
 Docker Image Building

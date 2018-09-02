@@ -25,9 +25,9 @@ def test_runner():
 
   messages = out.split('\n')[:-1] #removes last end-of-line
 
-  nose.tools.eq_(len(messages), 2)
-  assert messages[0].startswith('restic') #restic 0.8.3
-  assert messages[1].startswith('compiled with go')
+  nose.tools.eq_(len(messages), 1)
+  assert messages[0].startswith('restic') #restic 0.9.2
+  assert 'compiled with go' in messages[0]
 
 
 def test_restic_init():
@@ -49,7 +49,8 @@ def test_restic_backup():
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 7)
-  assert messages[0] == ('scan [%s]' % SAMPLE_DIR)
+  assert messages[0] == ''
+  assert messages[-2].startswith('processed')
   assert messages[-1].startswith('snapshot')
   assert messages[-1].endswith('saved')
 

@@ -1,10 +1,13 @@
+{% set name = "b2" %}
+{% set version = "1.3.6" %}
+
 package:
-  name: b2
-  version: {{ environ.get('GIT_DESCRIBE_TAG', '').lstrip('v') + 'p' + environ.get('GIT_DESCRIBE_NUMBER', '') }}
+  name: {{ name }}
+  version: {{ version }}
 
 source:
   git_url: https://github.com/Backblaze/B2_Command_Line_Tool
-  git_rev: bbe4b73fc1a21e3476235e603a2fde8ff8a09ab3
+  git_rev: v{{ version }}
 
 build:
   number: 0

@@ -44,12 +44,11 @@ def run_init(repo, b2):
   messages = log.split('\n')[:-1] #removes last end-of-line
 
   if b2:
-    # skip first couple of messages (using https://api.backblazeb2.com...)
-    messages = messages[2:]
+    # skip other details
+    messages = messages[:1] + messages[-1:]
 
   assert messages[0].startswith('created restic repository')
   assert messages[0].endswith(repo)
-  nose.tools.eq_(messages[5], 'scan [%s]' % SAMPLE_DIR1)
   assert messages[-1].startswith('snapshot')
   assert messages[-1].endswith('saved')
 
@@ -108,19 +107,17 @@ def run_init_multiple(repo1, repo2, b2):
   messages2 = messages[int(len(messages)/2):]
 
   if b2:
-    # skip first couple of messages (using https://api.backblazeb2.com...)
-    messages1 = messages1[2:]
-    messages2 = messages2[2:]
+    # skip other details
+    messages1 = messages1[:1] + messages1[-1:]
+    messages2 = messages2[:1] + messages2[-1:]
 
   assert messages1[0].startswith('created restic repository')
   assert messages1[0].endswith(repo1)
-  nose.tools.eq_(messages1[5], 'scan [%s]' % SAMPLE_DIR1)
   assert messages1[-1].startswith('snapshot')
   assert messages1[-1].endswith('saved')
 
   assert messages2[0].startswith('created restic repository')
   assert messages2[0].endswith(repo2)
-  nose.tools.eq_(messages2[5], 'scan [%s]' % SAMPLE_DIR2)
   assert messages2[-1].startswith('snapshot')
   assert messages2[-1].endswith('saved')
 
@@ -164,10 +161,12 @@ def run_update(repo, b2):
 
   messages = log2.split('\n')[:-1] #removes last end-of-line
 
-  assert messages[0].startswith('using parent snapshot')
-  nose.tools.eq_(messages[1], 'scan [%s]' % SAMPLE_DIR1)
-  assert messages[7].startswith('snapshot')
-  assert messages[7].endswith('saved')
+  assert messages[6].startswith('snapshot')
+  assert messages[6].endswith('saved')
+
+  assert messages[7].startswith('Applying Policy: keep')
+
+  assert SAMPLE_DIR1 in messages[8]
 
 
 def test_update_local():
@@ -194,12 +193,13 @@ def run_update_recover(repo, b2):
 
   nose.tools.eq_(messages[0], 'successfully removed locks')
   nose.tools.eq_(messages[1], 'counting files in repo')
-  assert messages[7].startswith('using parent snapshot')
-  nose.tools.eq_(messages[8], 'scan [%s]' % SAMPLE_DIR1)
-  assert messages[14].startswith('snapshot')
-  assert messages[14].endswith('saved')
-  nose.tools.eq_(messages[15], 'counting files in repo')
-  nose.tools.eq_(messages[34], 'done')
+  assert messages[13].startswith('snapshot')
+  assert messages[13].endswith('saved')
+  nose.tools.eq_(messages[14], 'counting files in repo')
+  nose.tools.eq_(messages[15], 'building new index for repo')
+  nose.tools.eq_(messages[33], 'done')
+  assert messages[34].startswith('Applying Policy: keep')
+  assert SAMPLE_DIR1 in messages[35]
 
 
 def test_update_recover():
@@ -236,15 +236,18 @@ def run_update_multiple(repo1, repo2, b2):
   messages1 = messages[:int(len(messages)/2)]
   messages2 = messages[int(len(messages)/2):]
 
-  assert messages1[0].startswith('using parent snapshot')
-  nose.tools.eq_(messages1[1], 'scan [%s]' % SAMPLE_DIR1)
-  assert messages1[7].startswith('snapshot')
-  assert messages1[7].endswith('saved')
+  assert messages1[6].startswith('snapshot')
+  assert messages1[6].endswith('saved')
+  assert SAMPLE_DIR1 in messages1[8]
 
-  assert messages2[0].startswith('using parent snapshot')
-  nose.tools.eq_(messages2[1], 'scan [%s]' % SAMPLE_DIR2)
-  assert messages2[7].startswith('snapshot')
-  assert messages2[7].endswith('saved')
+  if b2:
+    assert messages2[8].startswith('snapshot')
+    assert messages2[8].endswith('saved')
+    assert SAMPLE_DIR2 in messages2[10]
+  else:
+    assert messages2[6].startswith('snapshot')
+    assert messages2[6].endswith('saved')
+    assert SAMPLE_DIR2 in messages2[8]
 
 
 def test_update_local_multiple():

@@ -1,6 +1,5 @@
 name: baker-dev
 channels:
-- https://www.idiap.ch/software/bob/conda/label/beta
 - https://www.idiap.ch/software/bob/conda
 - anjos
 - defaults
@@ -8,8 +7,8 @@ dependencies:
 - python=3.6
 - six
 - docopt
-- b2
-- restic
+- b2>=1.3
+- restic>=0.9
 - schedule
 - jinja2
 - ipdb

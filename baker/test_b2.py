@@ -93,7 +93,8 @@ def test_restic_backup():
 
   messages = out.split('\n')[:-1] #removes last end-of-line
   nose.tools.eq_(len(messages), 7)
-  assert messages[0] == ('scan [%s]' % SAMPLE_DIR1)
+  assert messages[0] == ''
+  assert messages[-2].startswith('processed')
   assert messages[-1].startswith('snapshot')
   assert messages[-1].endswith('saved')
 
@@ -109,9 +110,10 @@ def test_restic_check():
     out = restic.check(repo, [], True, 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
-  nose.tools.eq_(len(messages), 5)
-  nose.tools.eq_(messages[0], 'create exclusive lock for repository')
-  nose.tools.eq_(messages[1], 'load indexes')
+  nose.tools.eq_(len(messages), 6)
+  assert messages[0].startswith('using temporary cache in %s' % cache)
+  nose.tools.eq_(messages[1], 'create exclusive lock for repository')
+  nose.tools.eq_(messages[2], 'load indexes')
   nose.tools.eq_(messages[-1], 'no errors were found')
 
 
@@ -175,7 +177,7 @@ def test_cmdline_init():
 
   # Retrieve credentials
   from .test_cmdline import run_init
-  run_init('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+  run_init('%s' % TEST_BUCKET_NAME, _get_b2_info())
 
 
 def test_cmdline_init_error():
@@ -184,7 +186,7 @@ def test_cmdline_init_error():
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   from .test_cmdline import run_init_error
-  run_init_error('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+  run_init_error('%s' % TEST_BUCKET_NAME, _get_b2_info())
 
 
 def test_cmdline_init_multiple():
@@ -194,7 +196,7 @@ def test_cmdline_init_multiple():
   b2.empty_bucket(TEST_BUCKET_NAME2)
 
   from .test_cmdline import run_init_multiple
-  run_init_multiple('b2:%s' % TEST_BUCKET_NAME, 'b2:%s' % TEST_BUCKET_NAME2,
+  run_init_multiple('%s' % TEST_BUCKET_NAME, '%s' % TEST_BUCKET_NAME2,
       _get_b2_info())
 
 
@@ -204,7 +206,7 @@ def test_cmdline_init_cmdline():
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   from .test_cmdline import run_init_cmdline
-  run_init_cmdline('b2:%s' % TEST_BUCKET_NAME, [])
+  run_init_cmdline('%s' % TEST_BUCKET_NAME, [])
 
 
 def test_cmdline_update():
@@ -213,7 +215,7 @@ def test_cmdline_update():
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   from .test_cmdline import run_update
-  run_update('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+  run_update('%s' % TEST_BUCKET_NAME, _get_b2_info())
 
 
 def test_cmdline_update_recover():
@@ -222,7 +224,7 @@ def test_cmdline_update_recover():
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   from .test_cmdline import run_update_recover
-  run_update_recover('b2:%s' % TEST_BUCKET_NAME, _get_b2_info())
+  run_update_recover('%s' % TEST_BUCKET_NAME, _get_b2_info())
 
 
 def test_cmdline_update_error():
@@ -232,7 +234,7 @@ def test_cmdline_update_error():
   b2.empty_bucket(TEST_BUCKET_NAME2)
 
   from .test_cmdline import run_update_error
-  run_update_error('b2:%s' % TEST_BUCKET_NAME, 'b2:%s' % TEST_BUCKET_NAME2,
+  run_update_error('%s' % TEST_BUCKET_NAME, '%s' % TEST_BUCKET_NAME2,
       _get_b2_info())
 
 
@@ -243,7 +245,7 @@ def test_cmdline_update_multiple():
   b2.empty_bucket(TEST_BUCKET_NAME2)
 
   from .test_cmdline import run_update_multiple
-  run_update_multiple('b2:%s' % TEST_BUCKET_NAME, 'b2:%s' % TEST_BUCKET_NAME2,
+  run_update_multiple('%s' % TEST_BUCKET_NAME, '%s' % TEST_BUCKET_NAME2,
       _get_b2_info())
 
 
@@ -253,4 +255,4 @@ def test_cmdline_update_cmdline():
   b2.empty_bucket(TEST_BUCKET_NAME)
 
   from .test_cmdline import run_update_cmdline
-  run_update_cmdline('b2:%s' % TEST_BUCKET_NAME, [])
+  run_update_cmdline('%s' % TEST_BUCKET_NAME, [])

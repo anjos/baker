@@ -1,4 +1,4 @@
-{% set version = "0.20.2" %}
+{% set version = "0.23.0" %}
 
 package:
   name: yapf
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/y/yapf/yapf-{{ version }}.tar.gz
-  md5: 10d44a85bbedc2e573ceca9fc46f40ad
+  sha256: 330632d2592e67571ef2c113fe6f5802e2fa5d657448755d5546eea00693dc31
 
 build:
   number: 0
