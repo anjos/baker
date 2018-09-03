@@ -292,9 +292,8 @@ def setup(b2_id=None, b2_key=None):
   elif os.path.exists(B2_AUTH_FILE):
     logger.info("Using b2-auth file at `%s'...", B2_AUTH_FILE)
     with open(B2_AUTH_FILE, 'rt') as f:
-      b2_account_id, b2_account_key = \
-          [k.strip() for k in f.read().split('\n')]
-      authorize_account(b2_account_id, b2_account_key)
+      b2_account_id, b2_account_key = f.readlines()
+      authorize_account(b2_account_id.strip(), b2_account_key.strip())
 
   # 3. last resource, auth tokens are set on the environment
   elif 'B2_ACCOUNT_ID' in os.environ and 'B2_ACCOUNT_KEY' in os.environ:
