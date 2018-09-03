@@ -24,8 +24,8 @@ requirements:
     - python
     - docopt
     - six
-    - restic >= 0.9
-    - b2 >= 1.3
+    - restic >=0.9
+    - b2 >=1.3
     - schedule
     - jinja2
     - requests
