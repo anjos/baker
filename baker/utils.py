@@ -156,12 +156,14 @@ def run_cmdline(cmd, env=None, mask=None):
       env=env)
 
   chunk_size = 1 << 13
+  lineno = 0
   for chunk in iter(lambda: p.stdout.read(chunk_size), b''):
     decoded = chunk.decode()
     while '\n' in decoded:
       pos = decoded.index('\n')
-      logger.debug(decoded[:pos])
+      logger.debug('%03d: %s' % (lineno, decoded[:pos]))
       decoded = decoded[pos+1:]
+      lineno += 1
     out += chunk
 
   if p.wait() != 0:
