@@ -243,20 +243,12 @@ def run_update_multiple(repo1, repo2, b2):
   assert SAMPLE_DIR1 in messages1[8], 'message "%s" does not ' \
         'contain "%s"' % (messages1[8], SAMPLE_DIR1)
 
-  if b2:
-    assert messages2[8].startswith('snapshot'), 'message "%s" does not ' \
-        'start with "snapshot"' % (messages2[8],)
-    assert messages2[8].endswith('saved'), 'message "%s" does not ' \
-        'end with "saved"' % (messages2[8],)
-    assert SAMPLE_DIR2 in messages2[10], 'message "%s" does not ' \
-        'contain "%s"' % (messages2[10], SAMPLE_DIR2)
-  else:
-    assert messages2[6].startswith('snapshot'), 'message "%s" does not ' \
-        'start with "snapshot"' % (messages2[6],)
-    assert messages2[6].endswith('saved'), 'message "%s" does not ' \
-        'end with "saved"' % (messages2[6],)
-    assert SAMPLE_DIR2 in messages2[8], 'message "%s" does not ' \
-        'contain "%s"' % (messages2[8], SAMPLE_DIR2)
+  assert messages2[6].startswith('snapshot'), 'message "%s" does not ' \
+      'start with "snapshot"' % (messages2[6],)
+  assert messages2[6].endswith('saved'), 'message "%s" does not ' \
+      'end with "saved"' % (messages2[6],)
+  assert SAMPLE_DIR2 in messages2[8], 'message "%s" does not ' \
+      'contain "%s"' % (messages2[8], SAMPLE_DIR2)
 
 
 def test_update_local_multiple():
