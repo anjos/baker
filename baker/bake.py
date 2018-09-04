@@ -15,6 +15,9 @@ Usage: %(prog)s [-v...] init [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--hostname=<name>] [--cache=<dir>] [--alarm=<seconds>]
                 [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 [--run-daily-at=<hour>] <password> <config> [<config> ...]
+       %(prog)s [-v...] init <file>
+       %(prog)s [-v...] update <file>
+       %(prog)s [-v...] check <file>
        %(prog)s --help
        %(prog)s --version
 
@@ -50,6 +53,9 @@ Arguments:
               separated by a pipe '|' symbol. Example "/data|b2:data". This
               double indicates that the local directory "/data" will be
               backed-up on the BackBlaze B2 bucket called "data".
+  <file>      A JSON formatted configuration file in which all doc-options are
+              set. Using this alternative command-line system it is easier to
+              pass command-line options and store working setups
 
 
 Options:
@@ -187,6 +193,13 @@ def main(user_input=None):
       version=completions['version'],
       )
 
+  if args['<file>'] is not None:
+    #fill-in from file
+    import json
+    with open(args['<file>'], 'rb') as f:
+      options = json.load(f)
+      args.update(options)
+
   from .reporter import setup_logger
   logger = setup_logger('baker', args['--verbose'])
 
@@ -214,7 +227,7 @@ def main(user_input=None):
 
   # check some config variables
   for dire, repo in config.items():
-    if not os.path.exists(dire):
+    if not args['check'] and not os.path.exists(dire):
       raise RuntimeError('Path to backup `%s\' does not exist' % dire)
     logger.info(" - (folder) %s -> %s (repo)", dire, repo)
 

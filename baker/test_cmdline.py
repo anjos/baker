@@ -6,6 +6,7 @@
 
 import os
 import time
+import tempfile
 import nose.tools
 import pkg_resources
 
@@ -453,3 +454,38 @@ def test_check_cmdline():
 
   with TemporaryDirectory() as d:
     run_check_cmdline(d, [])
+
+
+def run_check_config(repo, options):
+
+  with StdoutCapture() as buf, TemporaryDirectory() as cache, \
+      tempfile.NamedTemporaryFile(mode='wt') as config:
+
+    import json
+    data = {
+        '--verbose': 3,
+        '--overwrite': True,
+        '--cache': cache,
+        '--alarm': '1000',
+        '--hostname': 'hostname',
+        '<password>': 'password',
+        '<config>': [
+          '%s|%s' % (SAMPLE_DIR1, repo),
+          ],
+        }
+    data.update(options)
+    json.dump(data, config)
+
+    config.flush()
+
+    retval1 = bake.main(['init', config.name])
+    retval2 = bake.main(['check', config.name])
+
+  nose.tools.eq_(retval2, 0)
+  assert 'Successful check of' in buf.read()
+
+
+def test_check_config():
+
+  with TemporaryDirectory() as d:
+    run_check_config(d, {})
