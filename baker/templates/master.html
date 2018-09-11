@@ -68,7 +68,7 @@
     {% for path in snapshots|groupby('paths') -%}
     <p><b>Path</b>: {{ path.grouper|join(', ') }}</p>
     {% if alarm is defined -%}
-    <p><b class="error">ALARM:</b> The latest snapshot for this repo dates from <b class="error">{{ path.list[0]['time']|humanize_time }}</b> ago.</p>
+    <p><b class="error">ALARM:</b> The latest snapshot for this repo dates from <b class="error">{{ path.list[-1]['time']|humanize_time }}</b> ago.</p>
     {%- endif %}
     <table>
       <tr><th>Date</th><th>Time delta</th><th>Short identifier</th></tr>
