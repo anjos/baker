@@ -19,8 +19,8 @@ command line::
 
   $ conda create --override-channels -c anjos -c defaults -n baker python=x.y baker
 
-Where ``x.y`` can be either ``2.7`` or ``3.6``. Once the environment is
-installed, activate it to be able to call binaries::
+Where ``x.y`` can be only ``3.7``. Once the environment is installed, activate
+it to be able to call binaries::
 
   $ source activate baker
 
