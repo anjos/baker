@@ -100,7 +100,7 @@ everytime), do::
   (base) $ anaconda login
   # enter credentials
   (base) $ anaconda upload <conda-bld>/*-64/restic-*.tar.bz2
-  (base) $ anaconda upload <conda-bld>/*-64/{yapf,logfury,b2,schedule}-*.tar.bz2
+  (base) $ anaconda upload <conda-bld>/noarch/{logfury,b2,b2sdk,schedule}-*.tar.bz2
 
 
 Docker Image Building

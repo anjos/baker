@@ -4,11 +4,11 @@ channels:
 - anjos
 - defaults
 dependencies:
-- python=3.6
+- python=3.7
 - six
 - docopt
-- b2>=1.3
-- restic>=0.9
+- b2>=1.4.2
+- restic>=0.9.5
 - schedule
 - jinja2
 - ipdb

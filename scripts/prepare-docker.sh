@@ -7,9 +7,6 @@ condarc="${conda_dir}/.condarc"
 cat <<EOF > ${condarc}
 default_channels: #!final
   - https://repo.continuum.io/pkgs/main
-  - https://repo.continuum.io/pkgs/free
-  - https://repo.continuum.io/pkgs/r
-  - https://repo.continuum.io/pkgs/pro
 add_pip_as_python_dependency: false #!final
 changeps1: false #!final
 always_yes: true #!final

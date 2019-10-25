@@ -4,22 +4,27 @@
 script_dir="$( cd "$(dirname "$0")" ; pwd -P )"
 
 simple_pkgs=()
-#simple_pkgs+=('deps/restic')
+simple_pkgs+=('deps/restic')
 
 python_versions=()
-python_versions+=('2.7')
-python_versions+=('3.6')
+python_versions+=('3.7')
 
 python_pkgs=()
-python_pkgs+=('deps/yapf')
-#python_pkgs+=('deps/logfury')
-#python_pkgs+=('deps/schedule')
-#python_pkgs+=('deps/b2')
 #python_pkgs+=('conda') #baker itself
 
+noarch_pkgs=()
+#noarch_pkgs+=('deps/logfury')
+#noarch_pkgs+=('deps/schedule')
+#noarch_pkgs+=('deps/b2sdk')
+#noarch_pkgs+=('deps/b2')
+
 for p in "${simple_pkgs[@]}"; do
-  conda build ${p}
+  #conda build ${p}
   ${script_dir}/conda-build-docker.sh /work/$p
+done
+
+for p in "${noarch_pkgs[@]}"; do
+  conda build --no-test $p
 done
 
 for pyver in "${python_versions[@]}"; do

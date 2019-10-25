@@ -4,8 +4,8 @@ ARG VERSION
 #See: https://remotemonitoringsystems.ca/time-zone-abbreviations.php
 ENV TZ="CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"
 RUN CONDA_DIR="/opt/conda" && \
-    CONDA_VERSION="4.4.10" && \
-    CONDA_MD5_CHECKSUM="bec6203dbb2f53011e974e9bf4d46e93" && \
+    CONDA_VERSION="4.7.12" && \
+    CONDA_MD5_CHECKSUM="0dba759b8ecfc8948f626fa18785e3d8" && \
     \
     apk add --no-cache --virtual=.build-dependencies wget bash && \
     apk add --no-cache ca-certificates tzdata && \

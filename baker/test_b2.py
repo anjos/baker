@@ -92,8 +92,10 @@ def test_restic_backup():
         cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
-  nose.tools.eq_(len(messages), 7)
-  assert messages[0] == ''
+  nose.tools.eq_(len(messages), 8)
+  assert messages[0].startswith('created new cache in')
+  assert messages[0].endswith(cache)
+  assert messages[1] == ''
   assert messages[-2].startswith('processed')
   assert messages[-1].startswith('snapshot')
   assert messages[-1].endswith('saved')
@@ -110,10 +112,11 @@ def test_restic_check():
     out = restic.check(repo, [], True, 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
-  nose.tools.eq_(len(messages), 6)
+  nose.tools.eq_(len(messages), 7)
   assert messages[0].startswith('using temporary cache in %s' % cache)
-  nose.tools.eq_(messages[1], 'create exclusive lock for repository')
-  nose.tools.eq_(messages[2], 'load indexes')
+  assert messages[1].startswith('created new cache in %s' % cache)
+  nose.tools.eq_(messages[2], 'create exclusive lock for repository')
+  nose.tools.eq_(messages[3], 'load indexes')
   nose.tools.eq_(messages[-1], 'no errors were found')
 
 

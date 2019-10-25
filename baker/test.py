@@ -48,8 +48,10 @@ def test_restic_backup():
     out = restic.backup(SAMPLE_DIR, d, [], 'hostname', [], 'password', cache)
 
   messages = out.split('\n')[:-1] #removes last end-of-line
-  nose.tools.eq_(len(messages), 7)
-  assert messages[0] == ''
+  nose.tools.eq_(len(messages), 8)
+  assert messages[0].startswith('created new cache in')
+  assert messages[0].endswith(cache)
+  assert messages[1] == ''
   assert messages[-2].startswith('processed')
   assert messages[-1].startswith('snapshot')
   assert messages[-1].endswith('saved')

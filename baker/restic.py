@@ -134,7 +134,7 @@ def backup(directory, repository, global_options, hostname, backup_options,
     hostname (str): The name of the host to use for backing-up
 
     backup_options (list): A list of backup options to pass to restic (like
-      ``--exclude`` flags) - don't pass ``--hostname`` as this will be included
+      ``--exclude`` flags) - don't pass ``--host`` as this will be included
       automatically
 
     password (str): The restic repository password
@@ -146,7 +146,7 @@ def backup(directory, repository, global_options, hostname, backup_options,
 
   _assert_b2_setup(repository)
   return run_restic(['--repo', repository] + global_options,
-      'backup', ['--hostname', hostname] + backup_options + [directory],
+      'backup', ['--host', hostname] + backup_options + [directory],
       password, cache)
 
 

@@ -133,7 +133,7 @@ def run_init_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
     retval = bake.main(options + ['-vvv', 'init', '--overwrite',
-      '--cache=%s' % cache, '--hostname=hostname', 'password',
+      '--cache=%s' % cache, '--host=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
   nose.tools.eq_(retval, 0)
@@ -167,7 +167,7 @@ def run_update(repo, b2):
 
   assert messages[7].startswith('Applying Policy: keep')
 
-  assert SAMPLE_DIR1 in messages[8]
+  assert SAMPLE_DIR1 in messages[11]
 
 
 def test_update_local():
@@ -200,7 +200,7 @@ def run_update_recover(repo, b2):
   nose.tools.eq_(messages[15], 'building new index for repo')
   nose.tools.eq_(messages[33], 'done')
   assert messages[34].startswith('Applying Policy: keep')
-  assert SAMPLE_DIR1 in messages[35]
+  assert SAMPLE_DIR1 in messages[38]
 
 
 def test_update_recover():
@@ -241,15 +241,26 @@ def run_update_multiple(repo1, repo2, b2):
         'start with "snapshot"' % (messages1[6],)
   assert messages1[6].endswith('saved'), 'message "%s" does not ' \
         'end with "saved"' % (messages1[6],)
-  assert SAMPLE_DIR1 in messages1[8], 'message "%s" does not ' \
-        'contain "%s"' % (messages1[8], SAMPLE_DIR1)
+  assert SAMPLE_DIR1 in messages1[11], 'message "%s" does not ' \
+        'contain "%s"' % (messages1[11], SAMPLE_DIR1)
 
-  assert messages2[6].startswith('snapshot'), 'message "%s" does not ' \
-      'start with "snapshot"' % (messages2[6],)
-  assert messages2[6].endswith('saved'), 'message "%s" does not ' \
-      'end with "saved"' % (messages2[6],)
-  assert SAMPLE_DIR2 in messages2[8], 'message "%s" does not ' \
-      'contain "%s"' % (messages2[8], SAMPLE_DIR2)
+  if b2:
+
+    assert messages2[8].startswith('snapshot'), 'message "%s" does not ' \
+        'start with "snapshot"' % (messages2[8],)
+    assert messages2[8].endswith('saved'), 'message "%s" does not ' \
+        'end with "saved"' % (messages2[8],)
+    assert SAMPLE_DIR2 in messages2[13], 'message "%s" does not ' \
+        'contain "%s"' % (messages2[13], SAMPLE_DIR2)
+
+  else:
+
+    assert messages2[6].startswith('snapshot'), 'message "%s" does not ' \
+        'start with "snapshot"' % (messages2[6],)
+    assert messages2[6].endswith('saved'), 'message "%s" does not ' \
+        'end with "saved"' % (messages2[6],)
+    assert SAMPLE_DIR2 in messages2[11], 'message "%s" does not ' \
+        'contain "%s"' % (messages2[11], SAMPLE_DIR2)
 
 
 def test_update_local_multiple():
@@ -288,9 +299,9 @@ def run_update_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
     retval1 = bake.main(options + ['-vvv', 'init', '--overwrite',
-      '--cache=%s' % cache, '--hostname=hostname', 'password',
+      '--cache=%s' % cache, '--host=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
-    retval2 = bake.main(options + ['-vvv', 'update', '--hostname=hostname',
+    retval2 = bake.main(options + ['-vvv', 'update', '--host=hostname',
       '--cache=%s' % cache, '--keep=1|0|0|0|0|0', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
@@ -440,9 +451,9 @@ def run_check_cmdline(repo, options):
 
   with StdoutCapture() as buf, TemporaryDirectory() as cache:
     retval1 = bake.main(options + ['-vvv', 'init', '--overwrite',
-      '--cache=%s' % cache, '--hostname=hostname', 'password',
+      '--cache=%s' % cache, '--host=hostname', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
-    retval2 = bake.main(options + ['-vvv', 'check', '--hostname=hostname',
+    retval2 = bake.main(options + ['-vvv', 'check', '--host=hostname',
       '--cache=%s' % cache, '--alarm=1000', 'password',
       '%s|%s' % (SAMPLE_DIR1, repo)])
 
@@ -467,7 +478,7 @@ def run_check_config(repo, options):
         '--overwrite': True,
         '--cache': cache,
         '--alarm': '1000',
-        '--hostname': 'hostname',
+        '--host': 'hostname',
         '<password>': 'password',
         '<config>': [
           '%s|%s' % (SAMPLE_DIR1, repo),
