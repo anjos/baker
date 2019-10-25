@@ -4,13 +4,13 @@
 script_dir="$( cd "$(dirname "$0")" ; pwd -P )"
 
 simple_pkgs=()
-simple_pkgs+=('deps/restic')
+#simple_pkgs+=('deps/restic')
 
 python_versions=()
 python_versions+=('3.7')
 
 python_pkgs=()
-#python_pkgs+=('conda') #baker itself
+python_pkgs+=('conda') #baker itself
 
 noarch_pkgs=()
 #noarch_pkgs+=('deps/logfury')
