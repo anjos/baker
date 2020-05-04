@@ -4,7 +4,7 @@
 """Dump (optionless) script that just deployes all our containers"""
 
 import os
-from baker import qnap, utils
+from . import qnap, utils, reporter
 
 
 def _delete_create(session, server, name, existing, options):
@@ -20,8 +20,6 @@ def _delete_create(session, server, name, existing, options):
 
 
 def main():
-
-    from baker import reporter
 
     logger = reporter.setup_logger("baker", 3)
 
@@ -52,7 +50,7 @@ def main():
 
         # Use this one for tests
         options = dict(volume=volumes, autostart=False, command="-vvv --help",)
-        # _delete_create(session, 'baker-help', existing, options)
+        # _delete_create(session, server, 'baker-help', existing, options)
 
         #### RECURRENT ACTIONS ####
 
@@ -62,7 +60,7 @@ def main():
             command='-vv check --email=onerror --run-daily-at="17:00" '
             + common_command,
         )
-        _delete_create(session, "baker-check", existing, options)
+        _delete_create(session, server, "baker-check", existing, options)
 
         options = dict(
             volume=volumes,
@@ -70,7 +68,7 @@ def main():
             command='-vv update --email=onerror --run-daily-at="03:00" '
             + common_command,
         )
-        _delete_create(session, "baker-update", existing, options)
+        _delete_create(session, server, "baker-update", existing, options)
 
         #### ONCE IN A TIME ACTIONS ####
 
@@ -79,21 +77,21 @@ def main():
             volume=volumes,
             command="-vvv check --email=always " + common_command,
         )
-        _delete_create(session, "baker-check-once", existing, options)
+        _delete_create(session, server, "baker-check-once", existing, options)
 
         options = dict(
             autostart=False,
             volume=volumes,
             command="-vvv update --email=always " + common_command,
         )
-        _delete_create(session, "baker-update-once", existing, options)
+        _delete_create(session, server, "baker-update-once", existing, options)
 
         options = dict(
             autostart=False,
             volume=volumes,
             command="-vv update --recover --email=always " + common_command,
         )
-        _delete_create(session, "baker-recover", existing, options)
+        _delete_create(session, server, "baker-recover", existing, options)
 
 
 if __name__ == "__main__":

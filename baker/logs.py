@@ -5,12 +5,10 @@
 
 import os
 import sys
-from baker import qnap, utils
+from . import qnap, utils, reporter
 
 
 def main():
-
-    from baker import reporter
 
     logger = reporter.setup_logger("baker", 2)
 
