@@ -20,3 +20,4 @@ src/
 .coverage
 .DS_Store
 *.json
+ctstation/
