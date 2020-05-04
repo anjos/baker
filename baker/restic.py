@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-'''An interface to the restic command-line application'''
+"""An interface to the restic command-line application"""
 
 
 import os
@@ -10,18 +10,20 @@ import json
 import datetime
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from .utils import run_cmdline, which
 
 
-RESTIC_BIN = which('restic')
-logger.debug('Using restic from `%s\'', RESTIC_BIN)
+RESTIC_BIN = which("restic")
+logger.debug("Using restic from `%s'", RESTIC_BIN)
 
 
-def run_restic(global_options, subcmd, subcmd_options, password=None,
-    cache=None):
-  '''Runs restic on a contained environment, report output and status
+def run_restic(
+    global_options, subcmd, subcmd_options, password=None, cache=None
+):
+    """Runs restic on a contained environment, report output and status
 
 
   Runs the restic binary on the provided environment, capturing output and
@@ -46,44 +48,50 @@ def run_restic(global_options, subcmd, subcmd_options, password=None,
 
     bool: ``True`` if the program returned 0 exit status (ran w/o problems)
 
-  '''
+  """
 
-  if not RESTIC_BIN:
-    raise RuntimeError("The executable `restic' must be available " \
-        "on your ${PATH}")
+    if not RESTIC_BIN:
+        raise RuntimeError(
+            "The executable `restic' must be available " "on your ${PATH}"
+        )
 
-  env = copy.copy(os.environ)
-  if password: env.setdefault('RESTIC_PASSWORD', password)
+    env = copy.copy(os.environ)
+    if password:
+        env.setdefault("RESTIC_PASSWORD", password)
 
-  if cache:
-    global_options += ['--cache-dir', cache]
+    if cache:
+        global_options += ["--cache-dir", cache]
 
-  cmd = [RESTIC_BIN] + global_options + [subcmd] + subcmd_options
+    cmd = [RESTIC_BIN] + global_options + [subcmd] + subcmd_options
 
-  return run_cmdline(cmd, env)
+    return run_cmdline(cmd, env)
 
 
 def _assert_b2_setup(repo):
-  '''Checks if B2 credentials are setup correctly'''
+    """Checks if B2 credentials are setup correctly"""
 
-  if repo.startswith('b2:'):
-    if 'B2_ACCOUNT_ID' not in os.environ:
-      raise RuntimeError("You must setup ${B2_ACCOUNT_ID} to use a " \
-          "BackBlaze B2 repository")
-    if 'B2_ACCOUNT_KEY' not in os.environ:
-      raise RuntimeError("You must setup ${B2_ACCOUNT_KEY} to use a " \
-          "BackBlaze B2 repository")
+    if repo.startswith("b2:"):
+        if "B2_ACCOUNT_ID" not in os.environ:
+            raise RuntimeError(
+                "You must setup ${B2_ACCOUNT_ID} to use a "
+                "BackBlaze B2 repository"
+            )
+        if "B2_ACCOUNT_KEY" not in os.environ:
+            raise RuntimeError(
+                "You must setup ${B2_ACCOUNT_KEY} to use a "
+                "BackBlaze B2 repository"
+            )
 
 
 def version():
-  '''Returns the result of ``restic version``
-  '''
+    """Returns the result of ``restic version``
+  """
 
-  return run_restic([], 'version', [])
+    return run_restic([], "version", [])
 
 
 def init(repository, global_options, password, cache):
-  '''Initializes a restic repository
+    """Initializes a restic repository
 
   The repository may be local or sitting on a remote B2 bucket
 
@@ -103,16 +111,24 @@ def init(repository, global_options, password, cache):
     cache (str): The path to the cache directory to use for restic. If not set,
       use the XDG cache default (typically ~/.cache/restic)
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
-  return run_restic(['--repo', repository] + global_options, 'init', [],
-      password, cache)
+    _assert_b2_setup(repository)
+    return run_restic(
+        ["--repo", repository] + global_options, "init", [], password, cache
+    )
 
 
-def backup(directory, repository, global_options, hostname, backup_options,
-    password, cache):
-  '''Performs the backup
+def backup(
+    directory,
+    repository,
+    global_options,
+    hostname,
+    backup_options,
+    password,
+    cache,
+):
+    """Performs the backup
 
   This command executes ``restic backup`` for the provided local directory on
   the remote repository.
@@ -142,16 +158,20 @@ def backup(directory, repository, global_options, hostname, backup_options,
     cache (str): The path to the cache directory to use for restic. If not set,
       use the XDG cache default (typically ~/.cache/restic)
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
-  return run_restic(['--repo', repository] + global_options,
-      'backup', ['--host', hostname] + backup_options + [directory],
-      password, cache)
+    _assert_b2_setup(repository)
+    return run_restic(
+        ["--repo", repository] + global_options,
+        "backup",
+        ["--host", hostname] + backup_options + [directory],
+        password,
+        cache,
+    )
 
 
 def forget(repository, global_options, hostname, prune, keep, password, cache):
-  '''Performs the backup
+    """Performs the backup
 
   This command executes ``restic forget`` for the provided local directory on
   the remote repository.
@@ -181,20 +201,25 @@ def forget(repository, global_options, hostname, prune, keep, password, cache):
     cache (str): The path to the cache directory to use for restic. If not set,
       use the XDG cache default (typically ~/.cache/restic)
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
+    _assert_b2_setup(repository)
 
-  options = ['--prune'] if prune else []
-  for key in keep:
-    options += ['--keep-%s' % key, str(keep[key])]
+    options = ["--prune"] if prune else []
+    for key in keep:
+        options += ["--keep-%s" % key, str(keep[key])]
 
-  return run_restic(['--repo', repository] + global_options,
-      'forget', ['--host', hostname] + options, password, cache)
+    return run_restic(
+        ["--repo", repository] + global_options,
+        "forget",
+        ["--host", hostname] + options,
+        password,
+        cache,
+    )
 
 
 def check(repository, global_options, thorough, password, cache):
-  '''Checks the sanity of a restic repository
+    """Checks the sanity of a restic repository
 
   This procedure is recommended after each forget operation
 
@@ -217,20 +242,25 @@ def check(repository, global_options, thorough, password, cache):
     cache (str): The path to the cache directory to use for restic. If not set,
       use the XDG cache default (typically ~/.cache/restic)
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
+    _assert_b2_setup(repository)
 
-  if thorough:
-    options = ['--check-unused']
-  else:
-    options = ['--with-cache']
-  return run_restic(['--repo', repository] + global_options,
-      'check', options, password, cache)
+    if thorough:
+        options = ["--check-unused"]
+    else:
+        options = ["--with-cache"]
+    return run_restic(
+        ["--repo", repository] + global_options,
+        "check",
+        options,
+        password,
+        cache,
+    )
 
 
 def snapshots(repository, global_options, hostname, password, cache):
-  '''Lists current snapshots available
+    """Lists current snapshots available
 
   Parameters:
 
@@ -256,25 +286,30 @@ def snapshots(repository, global_options, hostname, password, cache):
     the specifications. The list is organized by snapshot date, the first being
     the oldest snapshot and the last the youngest.
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
+    _assert_b2_setup(repository)
 
-  output = run_restic(['--repo', repository, '--json'] + global_options,
-      'snapshots', ['--host', hostname], password, cache)
+    output = run_restic(
+        ["--repo", repository, "--json"] + global_options,
+        "snapshots",
+        ["--host", hostname],
+        password,
+        cache,
+    )
 
-  data = json.loads(output)
+    data = json.loads(output)
 
-  # convert date/time representations for easier parsing
-  for k in data:
-    s = k['time'][:24]
-    k['time'] = datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f')
+    # convert date/time representations for easier parsing
+    for k in data:
+        s = k["time"][:24]
+        k["time"] = datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%S.%f")
 
-  return sorted(data, key=lambda k: k['time'])
+    return sorted(data, key=lambda k: k["time"])
 
 
 def unlock(repository, global_options, password, cache, remove_all):
-  '''Removes stale locks from a remote repository
+    """Removes stale locks from a remote repository
 
   Parameters:
 
@@ -299,16 +334,21 @@ def unlock(repository, global_options, password, cache, remove_all):
 
     str: The output of the command
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
-  unlock_options = ['--remove-all'] if remove_all else []
-  return run_restic(['--repo', repository] + global_options, 'unlock',
-      unlock_options, password, cache)
+    _assert_b2_setup(repository)
+    unlock_options = ["--remove-all"] if remove_all else []
+    return run_restic(
+        ["--repo", repository] + global_options,
+        "unlock",
+        unlock_options,
+        password,
+        cache,
+    )
 
 
 def rebuild_index(repository, global_options, password, cache):
-  '''Rebuilds the index on an existing repository
+    """Rebuilds the index on an existing repository
 
   Parameters:
 
@@ -330,16 +370,21 @@ def rebuild_index(repository, global_options, password, cache):
 
     str: The output of the command
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
+    _assert_b2_setup(repository)
 
-  return run_restic(['--repo', repository] + global_options, 'rebuild-index',
-      [], password, cache)
+    return run_restic(
+        ["--repo", repository] + global_options,
+        "rebuild-index",
+        [],
+        password,
+        cache,
+    )
 
 
 def prune(repository, global_options, password, cache):
-  '''Prunes unreferenced objects on an existing repository
+    """Prunes unreferenced objects on an existing repository
 
   Parameters:
 
@@ -361,9 +406,10 @@ def prune(repository, global_options, password, cache):
 
     str: The output of the command
 
-  '''
+  """
 
-  _assert_b2_setup(repository)
+    _assert_b2_setup(repository)
 
-  return run_restic(['--repo', repository] + global_options, 'prune', [],
-      password, cache)
+    return run_restic(
+        ["--repo", repository] + global_options, "prune", [], password, cache
+    )

@@ -30,6 +30,8 @@ setup(
     entry_points = {
       'console_scripts': [
         'bake = baker.bake:main',
+        'deploy = baker.deploy:main',
+        'logs = baker.logs:main',
         'remove-test-buckets = baker.remove_test_buckets:main',
       ],
     },

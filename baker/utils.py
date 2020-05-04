@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import os
 import sys
+import json
 import time
 import copy
 import warnings
@@ -13,9 +14,20 @@ import tempfile
 import subprocess
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from .reporter import human_time
+
+
+def retrieve_json_secret(key):
+    """Retrieves a secret in JSON format from password-store"""
+
+    logger.info("Retrieving '%s' from password-store...", key)
+    p = subprocess.Popen(
+        ["pass", "show", key], stdin=sys.stdin, stdout=subprocess.PIPE
+    )
+    return json.loads(p.communicate()[0].strip())
 
 
 class TemporaryDirectory(object):
@@ -32,7 +44,7 @@ class TemporaryDirectory(object):
 
     def __init__(self, suffix="", prefix="tmp", dir=None):
         self._closed = False
-        self.name = None # Handle mkdtemp raising an exception
+        self.name = None  # Handle mkdtemp raising an exception
         self.name = tempfile.mkdtemp(suffix, prefix, dir)
 
     def __repr__(self):
@@ -51,13 +63,16 @@ class TemporaryDirectory(object):
                 # up due to missing globals
                 if "None" not in str(ex):
                     raise
-                print("ERROR: {!r} while cleaning up {!r}".format(ex, self,),
-                      file=sys.stderr)
+                print(
+                    "ERROR: {!r} while cleaning up {!r}".format(ex, self,),
+                    file=sys.stderr,
+                )
                 return
             self._closed = True
             if _warn:
-                self._warn("Implicitly cleaning up {!r}".format(self),
-                           ResourceWarning)
+                self._warn(
+                    "Implicitly cleaning up {!r}".format(self), ResourceWarning
+                )
 
     def __exit__(self, exc, value, tb):
         self.cleanup()
@@ -101,24 +116,26 @@ class TemporaryDirectory(object):
 
 
 def which(program):
-  '''Pythonic version of the `which` command-line application'''
+    """Pythonic version of the `which` command-line application"""
 
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program): return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file): return exe_file
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
 
-  return None
+    return None
 
 
 def run_cmdline(cmd, env=None, mask=None):
-  '''Runs a command on a environment, logs output and reports status
+    """Runs a command on a environment, logs output and reports status
 
 
   Parameters:
@@ -138,55 +155,59 @@ def run_cmdline(cmd, env=None, mask=None):
 
     str: The standard output and error of the command being executed
 
-  '''
+  """
 
-  if env is None: env = os.environ
+    if env is None:
+        env = os.environ
 
-  cmd_log = cmd
-  if mask:
-    cmd_log = copy.copy(cmd)
-    for k in range(mask, len(cmd)):
-      cmd_log[k] = '*' * len(cmd_log[k])
-  logger.info('$ %s' % ' '.join(cmd_log))
+    cmd_log = cmd
+    if mask:
+        cmd_log = copy.copy(cmd)
+        for k in range(mask, len(cmd)):
+            cmd_log[k] = "*" * len(cmd_log[k])
+    logger.info("$ %s" % " ".join(cmd_log))
 
-  start = time.time()
-  out = b''
+    start = time.time()
+    out = b""
 
-  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-      env=env)
+    p = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env
+    )
 
-  chunk_size = 1 << 13
-  lineno = 0
-  for chunk in iter(lambda: p.stdout.read(chunk_size), b''):
-    decoded = chunk.decode()
-    while '\n' in decoded:
-      pos = decoded.index('\n')
-      logger.debug('%03d: %s' % (lineno, decoded[:pos]))
-      decoded = decoded[pos+1:]
-      lineno += 1
-    out += chunk
+    chunk_size = 1 << 13
+    lineno = 0
+    for chunk in iter(lambda: p.stdout.read(chunk_size), b""):
+        decoded = chunk.decode()
+        while "\n" in decoded:
+            pos = decoded.index("\n")
+            logger.debug("%03d: %s" % (lineno, decoded[:pos]))
+            decoded = decoded[pos + 1 :]
+            lineno += 1
+        out += chunk
 
-  if p.wait() != 0:
-    logger.error('Command output is:\n%s', out.decode())
-    raise RuntimeError("command `%s' exited with error state (%d)" % \
-        (' '.join(cmd_log), p.returncode))
+    if p.wait() != 0:
+        logger.error("Command output is:\n%s", out.decode())
+        raise RuntimeError(
+            "command `%s' exited with error state (%d)"
+            % (" ".join(cmd_log), p.returncode)
+        )
 
-  total = time.time() - start
+    total = time.time() - start
 
-  logger.info('command took %s' % human_time(total))
+    logger.info("command took %s" % human_time(total))
 
-  out = out.decode()
+    out = out.decode()
 
-  return out
+    return out
 
 
-def get_size(path = '.'):
-  '''Returns the total size (in bytes) of contents of the provided directory'''
+def get_size(path="."):
+    """Returns the total size (in bytes) of contents of the provided directory"""
 
-  total_size = 0
-  for dirpath, dirnames, filenames in os.walk(path):
-    for f in filenames:
-      fp = os.path.join(dirpath, f)
-      total_size += os.path.getsize(fp)
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
 
-  return total_size
+    return total_size

@@ -55,7 +55,9 @@ Arguments:
               backed-up on the BackBlaze B2 bucket called "data".
   <file>      A JSON formatted configuration file in which all doc-options are
               set. Using this alternative command-line system it is easier to
-              pass command-line options and store working setups
+              pass command-line options and store working setups.  If the file
+              name starts with "pass:", then the password-store will be used to
+              retrieve the JSON file contents.
 
 
 Options:
@@ -164,6 +166,7 @@ import socket
 import collections
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import pkg_resources
@@ -176,157 +179,172 @@ from . import commands
 
 def main(user_input=None):
 
-  if user_input is not None:
-    argv = user_input
-  else:
-    argv = sys.argv[1:]
+    if user_input is not None:
+        argv = user_input
+    else:
+        argv = sys.argv[1:]
 
-  completions = dict(
-      prog=os.path.basename(sys.argv[0]),
-      version=pkg_resources.require('baker')[0].version,
-      hostname=socket.gethostname(),
-      )
+    completions = dict(
+        prog=os.path.basename(sys.argv[0]),
+        version=pkg_resources.require("baker")[0].version,
+        hostname=socket.gethostname(),
+    )
 
-  args = docopt.docopt(
-      __doc__ % completions,
-      argv=argv,
-      version=completions['version'],
-      )
+    args = docopt.docopt(
+        __doc__ % completions, argv=argv, version=completions["version"],
+    )
 
-  if args['<file>'] is not None:
-    #fill-in from file
-    import json
-    with open(args['<file>'], 'rb') as f:
-      options = json.load(f)
-      args.update(options)
+    if args["<file>"] is not None:
+        # fill-in from file
+        if args["<file>"].startswith("pass:"):
+            from .utils import retrieve_json_secret
 
-  from .reporter import setup_logger
-  logger = setup_logger('baker', args['--verbose'])
+            secret_name = args["<file>"].split(":", 1)[1]
+            options = retrieve_json_secret(secret_name)
+        else:
+            import json
 
-  # log
-  logger.info("Baker version %s (running on %s)",
-      completions['version'], args['--hostname'])
-  logger.info(" - %s", restic.version().split('\n')[0])
-  logger.info(" - %s", b2.version().split('\n')[0])
+            with open(args["<file>"], "rb") as f:
+                options = json.load(f)
 
-  # do some commandline parsing
-  config = collections.OrderedDict([k.split('|') for k in args['<config>']])
+        args.update(options)
 
-  # B2 setup, if required
-  b2_cred = {}
-  for dire, repo in config.items():
-    if repo.startswith('b2:'):
-      # needs b2 authentication setup
-      args['--b2-account-id'], args['--b2-account-key'] = b2.setup(
-          args['--b2-account-id'], args['--b2-account-key']
-          )
-      b2_cred['id'] = args['--b2-account-id']
-      b2_cred['key'] = args['--b2-account-key']
-      logger.info("B2 account id/key parameters provided")
-      break
+    from .reporter import setup_logger
 
-  # check some config variables
-  for dire, repo in config.items():
-    if not args['check'] and not os.path.exists(dire):
-      raise RuntimeError('Path to backup `%s\' does not exist' % dire)
-    logger.info(" - (folder) %s -> %s (repo)", dire, repo)
+    logger = setup_logger("baker", args["--verbose"])
 
-  # parse e-mail details
-  email = dict(
-      condition = args['--email'],
-      sender = args['--email-sender'],
-      receiver = args['--email-receiver'],
-      server = args['--email-server'],
-      port = args['--email-port'],
-      username = args['--email-username'],
-      password = args['--email-password'],
-      )
+    # log
+    logger.info(
+        "Baker version %s (running on %s)",
+        completions["version"],
+        args["--hostname"],
+    )
+    logger.info(" - %s", restic.version().split("\n")[0])
+    logger.info(" - %s", b2.version().split("\n")[0])
 
-  if args['--email'] != 'never': #check
-    logger.info('Sending **real** e-mails (%s):', args['--email'])
-    if not args['--email-sender']:
-      raise RuntimeError('You must set --email-sender to send e-mails')
-    logger.info(' - Sender: %s', args['--email-sender'])
-    if not args['--email-receiver']:
-      raise RuntimeError('You must set --email-receiver to send e-mails')
-    logger.info(' - Receivers: %s', ', '.join(args['--email-receiver']))
-    if not args['--email-server']:
-      raise RuntimeError('You must set --email-server to send e-mails')
-    logger.info(' - Server: %s:%s', args['--email-server'],
-        args['--email-port'])
-    if not args['--email-port']:
-      raise RuntimeError('You must set --email-port to send e-mails')
-    if not args['--email-username']:
-      raise RuntimeError('You must set --email-username to send e-mails')
-    logger.info(' - Username: %s', args['--email-username'])
-    if not args['--email-password']:
-      raise RuntimeError('You must set --email-password to send e-mails')
-    logger.info(' - Password: ********')
-  else:
-    logger.info("Only logging e-mails, **not** sending anything")
+    # do some commandline parsing
+    config = collections.OrderedDict([k.split("|") for k in args["<config>"]])
 
-  # verify cache
-  if args['--cache'] is not None:
-    if not os.path.exists(args['--cache']):
-      raise RuntimeError('Path to use for caching `%s\' does not exist' % \
-          args['--cache'])
-    logger.info("Caching restic requests at: %s", args['--cache'])
+    # B2 setup, if required
+    b2_cred = {}
+    for dire, repo in config.items():
+        if repo.startswith("b2:"):
+            # needs b2 authentication setup
+            args["--b2-account-id"], args["--b2-account-key"] = b2.setup(
+                args["--b2-account-id"], args["--b2-account-key"]
+            )
+            b2_cred["id"] = args["--b2-account-id"]
+            b2_cred["key"] = args["--b2-account-key"]
+            logger.info("B2 account id/key parameters provided")
+            break
 
-  if args['init']:
-    try:
-      commands.init(
-          config,
-          args['<password>'],
-          args['--cache'],
-          args['--overwrite'],
-          args['--hostname'],
-          email,
-          b2_cred,
-          )
-    except Exception as e:
-      raise RuntimeError('Unexpected error was not properly handled: %s' % \
-          str(e))
+    # check some config variables
+    for dire, repo in config.items():
+        if not args["check"] and not os.path.exists(dire):
+            raise RuntimeError("Path to backup `%s' does not exist" % dire)
+        logger.info(" - (folder) %s -> %s (repo)", dire, repo)
 
-  elif args['update']:
+    # parse e-mail details
+    email = dict(
+        condition=args["--email"],
+        sender=args["--email-sender"],
+        receiver=args["--email-receiver"],
+        server=args["--email-server"],
+        port=args["--email-port"],
+        username=args["--email-username"],
+        password=args["--email-password"],
+    )
 
-    keep_keys = ['last', 'hourly', 'daily', 'weekly', 'monthly', 'yearly']
-    keep = dict(zip(keep_keys, [int(k) for k in args['--keep'].split('|')]))
+    if args["--email"] != "never":  # check
+        logger.info("Sending **real** e-mails (%s):", args["--email"])
+        if not args["--email-sender"]:
+            raise RuntimeError("You must set --email-sender to send e-mails")
+        logger.info(" - Sender: %s", args["--email-sender"])
+        if not args["--email-receiver"]:
+            raise RuntimeError("You must set --email-receiver to send e-mails")
+        logger.info(" - Receivers: %s", ", ".join(args["--email-receiver"]))
+        if not args["--email-server"]:
+            raise RuntimeError("You must set --email-server to send e-mails")
+        logger.info(
+            " - Server: %s:%s", args["--email-server"], args["--email-port"]
+        )
+        if not args["--email-port"]:
+            raise RuntimeError("You must set --email-port to send e-mails")
+        if not args["--email-username"]:
+            raise RuntimeError("You must set --email-username to send e-mails")
+        logger.info(" - Username: %s", args["--email-username"])
+        if not args["--email-password"]:
+            raise RuntimeError("You must set --email-password to send e-mails")
+        logger.info(" - Password: ********")
+    else:
+        logger.info("Only logging e-mails, **not** sending anything")
 
-    logger.info("Snapshot storage strategy (--keep flags):")
-    for key, value in keep.items():
-      logger.info(' - %s: %d', key.capitalize(), value)
+    # verify cache
+    if args["--cache"] is not None:
+        if not os.path.exists(args["--cache"]):
+            raise RuntimeError(
+                "Path to use for caching `%s' does not exist" % args["--cache"]
+            )
+        logger.info("Caching restic requests at: %s", args["--cache"])
 
-    try:
-      commands.update(
-          config,
-          args['<password>'],
-          args['--cache'],
-          args['--hostname'],
-          email,
-          b2_cred,
-          keep,
-          args['--run-daily-at'],
-          bool(args['--recover']),
-          )
-    except Exception as e:
-      raise RuntimeError('Unexpected error was not properly handled: %s' % \
-          str(e))
+    if args["init"]:
+        try:
+            commands.init(
+                config,
+                args["<password>"],
+                args["--cache"],
+                args["--overwrite"],
+                args["--hostname"],
+                email,
+                b2_cred,
+            )
+        except Exception as e:
+            raise RuntimeError(
+                "Unexpected error was not properly handled: %s" % str(e)
+            )
 
-  elif args['check']:
+    elif args["update"]:
 
-    try:
-      commands.check(
-          config,
-          args['<password>'],
-          args['--cache'],
-          args['--hostname'],
-          email,
-          b2_cred,
-          int(args['--alarm']),
-          args['--run-daily-at'],
-          )
-    except Exception as e:
-      raise RuntimeError('Unexpected error was not properly handled: %s' % \
-          str(e))
+        keep_keys = ["last", "hourly", "daily", "weekly", "monthly", "yearly"]
+        keep = dict(zip(keep_keys, [int(k) for k in args["--keep"].split("|")]))
 
-  return 0
+        logger.info("Snapshot storage strategy (--keep flags):")
+        for key, value in keep.items():
+            logger.info(" - %s: %d", key.capitalize(), value)
+
+        try:
+            commands.update(
+                config,
+                args["<password>"],
+                args["--cache"],
+                args["--hostname"],
+                email,
+                b2_cred,
+                keep,
+                args["--run-daily-at"],
+                bool(args["--recover"]),
+            )
+        except Exception as e:
+            raise RuntimeError(
+                "Unexpected error was not properly handled: %s" % str(e)
+            )
+
+    elif args["check"]:
+
+        try:
+            commands.check(
+                config,
+                args["<password>"],
+                args["--cache"],
+                args["--hostname"],
+                email,
+                b2_cred,
+                int(args["--alarm"]),
+                args["--run-daily-at"],
+            )
+        except Exception as e:
+            raise RuntimeError(
+                "Unexpected error was not properly handled: %s" % str(e)
+            )
+
+    return 0
