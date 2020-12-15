@@ -328,15 +328,21 @@ def run_update_multiple(repo1, repo2, b2):
         SAMPLE_DIR1 in messages1[11]
     ), 'message "%s" does not ' 'contain "%s"' % (messages1[11], SAMPLE_DIR1)
 
-    assert messages2[9].startswith(
+    index = 6
+    if b2:
+        index += 3
+    assert messages2[index].startswith(
         "snapshot"
-    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[9],)
-    assert messages2[9].endswith(
+    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[index],)
+    assert messages2[index].endswith(
         "saved"
-    ), 'message "%s" does not ' 'end with "saved"' % (messages2[9],)
+    ), 'message "%s" does not ' 'end with "saved"' % (messages2[index],)
     assert (
-        SAMPLE_DIR2 in messages2[14]
-    ), 'message "%s" does not ' 'contain "%s"' % (messages2[14], SAMPLE_DIR2)
+        SAMPLE_DIR2 in messages2[index + 5]
+    ), 'message "%s" does not ' 'contain "%s"' % (
+        messages2[index + 5],
+        SAMPLE_DIR2,
+    )
 
 
 def test_update_local_multiple():
@@ -671,7 +677,9 @@ def run_check_config(repo, options):
             "--alarm": "1000",
             "--host": "hostname",
             "<password>": "password",
-            "<config>": ["%s|%s" % (SAMPLE_DIR1, repo),],
+            "<config>": [
+                "%s|%s" % (SAMPLE_DIR1, repo),
+            ],
         }
         data.update(options)
         json.dump(data, config)
