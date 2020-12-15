@@ -1,5 +1,5 @@
 {% set name = "b2" %}
-{% set version = "1.4.2" %}
+{% set version = "2.1.0" %}
 
 package:
   name: {{ name }}
@@ -24,17 +24,16 @@ requirements:
 
   run:
     - python
-    - b2sdk >=0.1.8
-    - six >=1.10
-    - tqdm >=4.5.0
+    - b2sdk >=1.2.0
+    - arrow >=0.8.0
+    - phx-class-registry =3.0.5
 
 test:
   source_files:
-    - test
-    - test_b2_command_line.py
+    - test/
 
   requires:
-    - nose
+    - pytest
     - mock
     - pyflakes
     - yapf
@@ -43,7 +42,7 @@ test:
     - b2
 
   commands:
-    - nosetests test/test_*.py
+    - pytest --doctest-modules -k 'not test_integration' test/unit test/integration
 
 about:
   home: https://github.com/Backblaze/B2_Command_Line_Tool

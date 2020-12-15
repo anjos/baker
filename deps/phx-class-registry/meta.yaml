@@ -1,0 +1,46 @@
+{% set name = "phx-class-registry" %}
+{% set version = "3.0.5" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: f11462ac410a8cda38c2b6a83b51a2390c7d9528baef591cb5b551b11aba2a92
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+
+  run:
+    - python
+
+test:
+  source_files:
+    - test/
+
+  requires:
+    - nose
+
+  imports:
+    - class_registry
+
+  commands:
+    - nosetests -sv --exclude=".*(test_len|test_branding|test_happy_path).*" test/
+
+about:
+  home: https://class-registry.readthedocs.io/en/latest/
+  license: MIT
+  summary: 'Factory+Registry pattern for Python classes'
+
+extra:
+  recipe-maintainers:
+    - anjos

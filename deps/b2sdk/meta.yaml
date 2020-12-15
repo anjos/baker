@@ -1,5 +1,5 @@
 {% set name = "b2sdk" %}
-{% set version = "0.1.8" %}
+{% set version = "1.2.0" %}
 
 package:
   name: {{ name }}
@@ -30,10 +30,10 @@ requirements:
 
 test:
   source_files:
-    - test
+    - test/
 
   requires:
-    - nose
+    - pytest
     - mock
     - pyflakes
     - yapf
@@ -42,7 +42,8 @@ test:
     - b2sdk
 
   commands:
-    - nosetests test/test_*.py
+    - pytest --api=v1 '--doctest-modules' -k 'not TestSynchronizer and not TestUpdateBucket' test/unit
+    - pytest --api=v0 '--doctest-modules' -k 'not TestSynchronizer and not TestUpdateBucket' test/unit
 
 about:
   home: https://github.com/Backblaze/b2-sdk-python

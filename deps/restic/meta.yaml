@@ -1,5 +1,5 @@
 {% set name = "restic" %}
-{% set version = "0.9.5" %}
+{% set version = "0.11.0" %}
 
 package:
   name: {{ name }}
@@ -8,8 +8,8 @@ package:
 source:
   url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}_{{ version }}_linux_amd64.bz2  # [linux and x86_64]
   url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}_{{ version }}_darwin_amd64.bz2  # [osx and x86_64]
-  sha256: 08cd75e56a67161e9b16885816f04b2bf1fb5b03bc0677b0ccf3812781c1a2ec  # [linux and x86_64]
-  sha256: bf1dcd0761b81ba9b79c01399083c6df74b709b44303ff01433753a9cc731caf  # [osx and x86_64]
+  sha256: f559e774c91f1201ffddba74d5758dec8342ad2b50a3bcd735ccb0c88839045c  # [linux and x86_64]
+  sha256: 4eb7ebda84217bc575fff510a5534f5750772915d6efa435a9ce49ef5eb0b075  # [osx and x86_64]
   fn: restic.bz2
 
 requirements:
