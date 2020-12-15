@@ -124,10 +124,10 @@ def test_restic_rebuild_index():
         out = restic.rebuild_index(d, [], "password", cache)
 
     messages = out.split("\n")[:-1]  # removes last end-of-line
-    nose.tools.eq_(len(messages), 6)
+    nose.tools.eq_(len(messages), 8)
     nose.tools.eq_(messages[0], "counting files in repo")
     nose.tools.eq_(messages[3], "finding old index files")
-    nose.tools.eq_(messages[-1], "remove 1 old index files")
+    nose.tools.eq_(messages[5], "remove 1 old index files")
 
 
 def test_restic_prune():
@@ -138,6 +138,6 @@ def test_restic_prune():
         out = restic.prune(d, [], "password", cache)
 
     messages = out.split("\n")[:-1]  # removes last end-of-line
-    nose.tools.eq_(len(messages), 20)
+    nose.tools.eq_(len(messages), 22)
     nose.tools.eq_(messages[0], "counting files in repo")
     nose.tools.eq_(messages[-1], "done")

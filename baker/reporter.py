@@ -6,7 +6,7 @@
 
 import os
 import sys
-import six
+import io
 import smtplib
 import datetime
 import email.mime.text
@@ -167,7 +167,7 @@ class LogCapture(object):
     def __init__(self, name, level=logging.DEBUG):
 
         self.logger = logging.getLogger(name)
-        self.buffer = six.StringIO()
+        self.buffer = io.StringIO()
         self.handler = logging.StreamHandler(self.buffer)
         self.handler.setLevel(level)
 
@@ -196,7 +196,7 @@ class StdoutCapture(object):
 
     def __init__(self):
 
-        self.buffer = six.StringIO()
+        self.buffer = io.StringIO()
 
     def __enter__(self):
 

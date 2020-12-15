@@ -258,13 +258,13 @@ def run_update_recover(repo, b2):
 
     nose.tools.eq_(messages[0], "successfully removed locks")
     nose.tools.eq_(messages[1], "counting files in repo")
-    assert messages[13].startswith("snapshot")
-    assert messages[13].endswith("saved")
-    nose.tools.eq_(messages[14], "counting files in repo")
-    nose.tools.eq_(messages[15], "building new index for repo")
-    nose.tools.eq_(messages[33], "done")
-    assert messages[34].startswith("Applying Policy: keep")
-    assert SAMPLE_DIR1 in messages[38]
+    assert messages[15].startswith("snapshot")
+    assert messages[15].endswith("saved")
+    nose.tools.eq_(messages[16], "counting files in repo")
+    nose.tools.eq_(messages[17], "building new index for repo")
+    nose.tools.eq_(messages[37], "done")
+    assert messages[38].startswith("Applying Policy: keep")
+    assert SAMPLE_DIR1 in messages[42]
 
 
 def test_update_recover():
@@ -328,15 +328,15 @@ def run_update_multiple(repo1, repo2, b2):
         SAMPLE_DIR1 in messages1[11]
     ), 'message "%s" does not ' 'contain "%s"' % (messages1[11], SAMPLE_DIR1)
 
-    assert messages2[6].startswith(
+    assert messages2[9].startswith(
         "snapshot"
-    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[6],)
-    assert messages2[6].endswith(
+    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[9],)
+    assert messages2[9].endswith(
         "saved"
-    ), 'message "%s" does not ' 'end with "saved"' % (messages2[6],)
+    ), 'message "%s" does not ' 'end with "saved"' % (messages2[9],)
     assert (
-        SAMPLE_DIR2 in messages2[11]
-    ), 'message "%s" does not ' 'contain "%s"' % (messages2[11], SAMPLE_DIR2)
+        SAMPLE_DIR2 in messages2[14]
+    ), 'message "%s" does not ' 'contain "%s"' % (messages2[14], SAMPLE_DIR2)
 
 
 def test_update_local_multiple():

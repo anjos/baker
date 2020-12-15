@@ -164,13 +164,15 @@ def remove_bucket(name):
 
   Returns:
 
-    dict: With the JSON contents returned by the ``delete-bucket`` command. The
+    dict: With the JSON contents returned by the ``get-bucket`` command. The
     snippet contains the deleted bucket information.
 
   """
 
     empty_bucket(name)
-    return json.loads(run_b2(["delete-bucket", name]))
+    retval = get_bucket(name)
+    assert not run_b2(["delete-bucket", name])  #returns empty string
+    return retval
 
 
 def create_bucket(name, tp="allPrivate"):
