@@ -315,10 +315,9 @@ def run_update_multiple(repo1, repo2, b2):
     assert "parent" not in snaps1[0]
     assert "parent" not in snaps1[1]
 
-    messages = log2.split("\n")[:-1]  # removes last end-of-line
-
-    messages1 = messages[: int(len(messages) / 2)]
-    messages2 = messages[int(len(messages) / 2) :]
+    split_index = log2.rfind("\nFiles:")
+    messages1 = log2[:split_index].split("\n")
+    messages2 = log2[split_index:].split("\n")
 
     assert messages1[6].startswith(
         "snapshot"
@@ -330,19 +329,16 @@ def run_update_multiple(repo1, repo2, b2):
         SAMPLE_DIR1 in messages1[11]
     ), 'message "%s" does not ' 'contain "%s"' % (messages1[11], SAMPLE_DIR1)
 
-    index = 6
-    if b2:
-        index += 3
-    assert messages2[index].startswith(
+    assert messages2[6].startswith(
         "snapshot"
-    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[index],)
-    assert messages2[index].endswith(
+    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[6],)
+    assert messages2[6].endswith(
         "saved"
-    ), 'message "%s" does not ' 'end with "saved"' % (messages2[index],)
+    ), 'message "%s" does not ' 'end with "saved"' % (messages2[6],)
     assert (
-        SAMPLE_DIR2 in messages2[index + 5]
+        SAMPLE_DIR2 in messages2[11]
     ), 'message "%s" does not ' 'contain "%s"' % (
-        messages2[index + 5],
+        messages2[11],
         SAMPLE_DIR2,
     )
 
