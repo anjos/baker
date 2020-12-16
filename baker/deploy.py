@@ -54,14 +54,6 @@ def main():
 
         #### RECURRENT ACTIONS ####
 
-        #options = dict(
-        #    volume=volumes,
-        #    autostart=False,
-        #    command='-vv check --email=onerror --run-daily-at="17:00" '
-        #    + common_command,
-        #)
-        #_delete_create(session, server, "baker-check", existing, options)
-
         options = dict(
             volume=volumes,
             autostart=True,
@@ -77,19 +69,12 @@ def main():
             volume=volumes,
             command="-vvv check --email=always " + common_command,
         )
-        _delete_create(session, server, "baker-check-once", existing, options)
-
-        #options = dict(
-        #    autostart=False,
-        #    volume=volumes,
-        #    command="-vvv update --email=always " + common_command,
-        #)
-        #_delete_create(session, server, "baker-update-once", existing, options)
+        _delete_create(session, server, "baker-check", existing, options)
 
         options = dict(
             autostart=False,
             volume=volumes,
-            command="-vv update --recover --email=always " + common_command,
+            command="-vv update --force-recovery --email=always " + common_command,
         )
         _delete_create(session, server, "baker-recover", existing, options)
 

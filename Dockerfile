@@ -4,14 +4,14 @@ ARG VERSION
 #See: https://remotemonitoringsystems.ca/time-zone-abbreviations.php
 ENV TZ="CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"
 RUN CONDA_DIR="/opt/conda" && \
-    CONDA_VERSION="4.8.3" && \
-    CONDA_MD5_CHECKSUM="d63adf39f2c220950a063e0529d4ff74" && \
+    CONDA_VERSION="4.9.2" && \
+    CONDA_MD5_CHECKSUM="122c8c9beb51e124ab32a0fa6426c656" && \
     \
     apk add --no-cache --virtual=.build-dependencies wget bash && \
     apk add --no-cache ca-certificates tzdata && \
     \
     mkdir -p "$CONDA_DIR" && \
-    wget "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh" -O miniconda.sh && \
+    wget "http://repo.continuum.io/miniconda/Miniconda3-py38_${CONDA_VERSION}-Linux-x86_64.sh" -O miniconda.sh && \
     echo "$CONDA_MD5_CHECKSUM  miniconda.sh" | md5sum -c && \
     bash miniconda.sh -f -b -p "$CONDA_DIR" && \
     rm miniconda.sh && \
