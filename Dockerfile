@@ -1,11 +1,11 @@
-FROM frolvlad/alpine-glibc:alpine-3.7
+FROM frolvlad/alpine-glibc:alpine-3.8
 ARG VERSION
 #ENV TZ="Europe/Zurich" - does not seem to work for Anaconda Python...
 #See: https://remotemonitoringsystems.ca/time-zone-abbreviations.php
 ENV TZ="CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"
 RUN CONDA_DIR="/opt/conda" && \
-    CONDA_VERSION="4.7.12" && \
-    CONDA_MD5_CHECKSUM="0dba759b8ecfc8948f626fa18785e3d8" && \
+    CONDA_VERSION="4.8.3" && \
+    CONDA_MD5_CHECKSUM="d63adf39f2c220950a063e0529d4ff74" && \
     \
     apk add --no-cache --virtual=.build-dependencies wget bash && \
     apk add --no-cache ca-certificates tzdata && \

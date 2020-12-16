@@ -22,12 +22,11 @@ requirements:
 
   run:
     - python
+    - restic >=0.11
+    - b2 >=2.1
     - docopt
-    - six
-    - restic >=0.9
-    - b2 >=1.3
-    - schedule
     - jinja2
+    - schedule
     - requests
 
 test:

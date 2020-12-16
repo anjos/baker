@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 setup(
 
     name='baker',
-    version='1.4.0',
+    version='1.5.0',
     description="Utilities for backing-up my QNAP on BackBlaze's B2",
     url='https://github.com/anjos/baker',
     license="GPLv3",
@@ -20,10 +20,10 @@ setup(
 
     install_requires=[
       'setuptools',
+      'b2',
       'docopt',
-      'six',
-      'schedule',
       'jinja2',
+      'schedule',
       'requests',
       ],
 
