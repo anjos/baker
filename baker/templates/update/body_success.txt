@@ -1,2 +1,2 @@
 {% extends "master.txt" %}
-{% block action %}Successfully updated{% endblock %}
+{% block action %}Successful {% if recovery %}recovery ({{ recovery }} attempt){% else %}update{% endif %}{% endblock %}

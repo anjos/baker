@@ -1,1 +1,1 @@
-{% extends "subject.txt" %}{% block action %}Successful update of{% endblock action %}
+{% extends "subject.txt" %}{% block action %}Successful {% if recovery %}recovery ({{ recovery }} attempt){% else %}update{% endif %} of{% endblock action %}

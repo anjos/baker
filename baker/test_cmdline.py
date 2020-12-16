@@ -10,7 +10,6 @@ import tempfile
 import nose.tools
 import pkg_resources
 
-from .utils import TemporaryDirectory
 from .reporter import StdoutCapture, LogCapture
 
 from . import commands
@@ -34,7 +33,7 @@ def test_help():
 
 def run_init(repo, b2):
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         log, sizes, snaps = commands.init(
             {SAMPLE_DIR1: repo},
             "password",
@@ -65,13 +64,13 @@ def run_init(repo, b2):
 
 def test_init_local():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_init(d, {})
 
 
 def run_init_error(repo, b2):
 
-    with LogCapture("baker") as buf, TemporaryDirectory() as cache:
+    with LogCapture("baker") as buf, tempfile.TemporaryDirectory() as cache:
         configs = {
             SAMPLE_DIR1: repo,
             SAMPLE_DIR2: repo,  # error - cannot backup on the same repo
@@ -91,7 +90,7 @@ def run_init_error(repo, b2):
 
 def test_init_error():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_init_error(d, {})
 
 
@@ -106,7 +105,7 @@ def run_init_multiple(repo1, repo2, b2):
         ]
     )
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         log, sizes, snaps = commands.init(
             configs,
             "password",
@@ -150,13 +149,13 @@ def run_init_multiple(repo1, repo2, b2):
 
 def test_init_multiple_local():
 
-    with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
         run_init_multiple(d1, d2, {})
 
 
 def run_init_cmdline(repo, options):
 
-    with StdoutCapture() as buf, TemporaryDirectory() as cache:
+    with StdoutCapture() as buf, tempfile.TemporaryDirectory() as cache:
         retval = bake.main(
             options
             + [
@@ -176,13 +175,13 @@ def run_init_cmdline(repo, options):
 
 def test_init_cmdline():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_init_cmdline(d, [])
 
 
 def run_update(repo, b2):
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         log1, sizes1, snaps1 = commands.init(
             {SAMPLE_DIR1: repo},
             "password",
@@ -201,7 +200,8 @@ def run_update(repo, b2):
             b2,
             {"last": 1},
             period=None,
-            recover=False,
+            max_recoveries=0,
+            force_recovery=False,
         )
 
     nose.tools.eq_(len(sizes1), 1)
@@ -221,13 +221,13 @@ def run_update(repo, b2):
 
 def test_update_local():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_update(d, {})
 
 
 def run_update_recover(repo, b2):
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         log1, sizes1, snaps1 = commands.init(
             {SAMPLE_DIR1: repo},
             "password",
@@ -246,7 +246,8 @@ def run_update_recover(repo, b2):
             b2,
             {"last": 1},
             period=None,
-            recover=True,
+            max_recoveries=1,
+            force_recovery=True,
         )
 
     nose.tools.eq_(len(sizes1), 1)
@@ -269,7 +270,7 @@ def run_update_recover(repo, b2):
 
 def test_update_recover():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_update_recover(d, {})
 
 
@@ -284,7 +285,7 @@ def run_update_multiple(repo1, repo2, b2):
         ]
     )
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         log1, sizes1, snaps1 = commands.init(
             configs,
             "password",
@@ -303,7 +304,8 @@ def run_update_multiple(repo1, repo2, b2):
             b2,
             {"last": 1},
             period=None,
-            recover=False,
+            max_recoveries=0,
+            force_recovery=False,
         )
 
     nose.tools.eq_(len(sizes1), 2)
@@ -347,13 +349,13 @@ def run_update_multiple(repo1, repo2, b2):
 
 def test_update_local_multiple():
 
-    with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
         run_update_multiple(d1, d2, {})
 
 
 def run_update_error(repo1, repo2, b2):
 
-    with LogCapture("baker") as buf, TemporaryDirectory() as cache:
+    with LogCapture("baker") as buf, tempfile.TemporaryDirectory() as cache:
         configs = {
             SAMPLE_DIR1: repo1,
             SAMPLE_DIR2: repo2,
@@ -380,7 +382,8 @@ def run_update_error(repo1, repo2, b2):
             b2,
             {"last": 1},
             period=None,
-            recover=False,
+            max_recoveries=0,
+            force_recovery=False,
         )
 
     assert "ERROR during update" in buf.read()
@@ -388,13 +391,13 @@ def run_update_error(repo1, repo2, b2):
 
 def test_update_error():
 
-    with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
         run_update_error(d1, d2, {})
 
 
 def run_update_cmdline(repo, options):
 
-    with StdoutCapture() as buf, TemporaryDirectory() as cache:
+    with StdoutCapture() as buf, tempfile.TemporaryDirectory() as cache:
         retval1 = bake.main(
             options
             + [
@@ -426,13 +429,13 @@ def run_update_cmdline(repo, options):
 
 def test_update_cmdline():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_update_cmdline(d, [])
 
 
 def run_check(repo, b2):
 
-    with TemporaryDirectory() as cache, LogCapture("baker") as buf:
+    with tempfile.TemporaryDirectory() as cache, LogCapture("baker") as buf:
         log1, sizes1, snaps1 = commands.init(
             {SAMPLE_DIR1: repo},
             "password",
@@ -469,13 +472,13 @@ def run_check(repo, b2):
 
 def test_check_local():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_check(d, {})
 
 
 def run_check_alarm(repo, b2):
 
-    with TemporaryDirectory() as cache, LogCapture("baker") as buf:
+    with tempfile.TemporaryDirectory() as cache, LogCapture("baker") as buf:
         log1, sizes1, snaps1 = commands.init(
             {SAMPLE_DIR1: repo},
             "password",
@@ -514,7 +517,7 @@ def run_check_alarm(repo, b2):
 
 def test_check_alarm_local():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_check_alarm(d, {})
 
 
@@ -529,7 +532,7 @@ def run_check_multiple(repo1, repo2, b2):
         ]
     )
 
-    with TemporaryDirectory() as cache, LogCapture("baker") as buf:
+    with tempfile.TemporaryDirectory() as cache, LogCapture("baker") as buf:
         log1, sizes1, snaps1 = commands.init(
             configs,
             "password",
@@ -580,13 +583,13 @@ def run_check_multiple(repo1, repo2, b2):
 
 def test_check_local_multiple():
 
-    with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
         run_check_multiple(d1, d2, {})
 
 
 def run_check_error(repo1, repo2, b2):
 
-    with LogCapture("baker") as buf, TemporaryDirectory() as cache:
+    with LogCapture("baker") as buf, tempfile.TemporaryDirectory() as cache:
         configs = {
             SAMPLE_DIR1: repo1,
             SAMPLE_DIR2: repo2,
@@ -620,13 +623,13 @@ def run_check_error(repo1, repo2, b2):
 
 def test_check_error():
 
-    with TemporaryDirectory() as d1, TemporaryDirectory() as d2:
+    with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
         run_check_error(d1, d2, {})
 
 
 def run_check_cmdline(repo, options):
 
-    with StdoutCapture() as buf, TemporaryDirectory() as cache:
+    with StdoutCapture() as buf, tempfile.TemporaryDirectory() as cache:
         retval1 = bake.main(
             options
             + [
@@ -658,13 +661,13 @@ def run_check_cmdline(repo, options):
 
 def test_check_cmdline():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_check_cmdline(d, [])
 
 
 def run_check_config(repo, options):
 
-    with StdoutCapture() as buf, TemporaryDirectory() as cache, tempfile.NamedTemporaryFile(
+    with StdoutCapture() as buf, tempfile.TemporaryDirectory() as cache, tempfile.NamedTemporaryFile(
         mode="wt"
     ) as config:
 
@@ -695,5 +698,5 @@ def run_check_config(repo, options):
 
 def test_check_config():
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         run_check_config(d, {})

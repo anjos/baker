@@ -8,7 +8,8 @@ Usage: %(prog)s [-v...] init [--b2-account-id=<id>] [--b2-account-key=<key>]
                 [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 <password> <config> [<config> ...]
        %(prog)s [-v...] update [--b2-account-id=<id>] [--b2-account-key=<key>]
-                [--hostname=<name>] [--cache=<dir>] [--keep=<kept>] [--recover]
+                [--hostname=<name>] [--cache=<dir>] [--keep=<kept>]
+                [--max-recoveries=<int>] [--force-recovery]
                 [--email=<cond> --email-receiver=<name> [--email-receiver=<name> ...] --email-sender=<name> --email-username=<user> --email-password=<pwd> [--email-server=<host>] [--email-port=<port>]]
                 [--run-daily-at=<hour>] <password> <config> [<config> ...]
        %(prog)s [-v...] check [--b2-account-id=<id>] [--b2-account-key=<key>]
@@ -121,8 +122,12 @@ Options:
   -S, --email-server=<host>    Name of the SMTP server to use for sending the
                                message [default: smtp.gmail.com]
   -P, --email-port=<port>      Port to use on the server [default: 587]
-  -R, --recover                If set, will first re-build the indexes and then
-                               perform backup followed by a prune.
+  -M, --max-recoveries=<int>   The maximum number of recovery attempts to try
+                               after a failed update of a given repository
+                               [default: 2]
+  -R, --force-recovery         If set, then does not attempt an update of the
+                               repository and starts with a recovery
+                               immediately
 
 
 Examples:
@@ -290,13 +295,13 @@ def main(user_input=None):
     if args["init"]:
         try:
             commands.init(
-                config,
-                args["<password>"],
-                args["--cache"],
-                args["--overwrite"],
-                args["--hostname"],
-                email,
-                b2_cred,
+                configs=config,
+                password=args["<password>"],
+                cache=args["--cache"],
+                overwrite=args["--overwrite"],
+                hostname=args["--hostname"],
+                email=email,
+                b2_cred=b2_cred,
             )
         except Exception as e:
             raise RuntimeError(
@@ -314,15 +319,16 @@ def main(user_input=None):
 
         try:
             commands.update(
-                config,
-                args["<password>"],
-                args["--cache"],
-                args["--hostname"],
-                email,
-                b2_cred,
-                keep,
-                args["--run-daily-at"],
-                bool(args["--recover"]),
+                configs=config,
+                password=args["<password>"],
+                cache=args["--cache"],
+                hostname=args["--hostname"],
+                email=email,
+                b2_cred=b2_cred,
+                keep=keep,
+                period=args["--run-daily-at"],
+                max_recoveries=int(args["--max-recoveries"]),
+                force_recovery=args["--force-recovery"],
             )
         except Exception as e:
             raise RuntimeError(
@@ -333,14 +339,14 @@ def main(user_input=None):
 
         try:
             commands.check(
-                config,
-                args["<password>"],
-                args["--cache"],
-                args["--hostname"],
-                email,
-                b2_cred,
-                int(args["--alarm"]),
-                args["--run-daily-at"],
+                configs=config,
+                password=args["<password>"],
+                cache=args["--cache"],
+                hostname=args["--hostname"],
+                email=email,
+                b2_cred=b2_cred,
+                alarm=int(args["--alarm"]),
+                period=args["--run-daily-at"],
             )
         except Exception as e:
             raise RuntimeError(

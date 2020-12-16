@@ -8,14 +8,13 @@ import os
 import uuid
 import nose.tools
 import pkg_resources
-
+import tempfile
 import logging
 
 logger = logging.getLogger(__name__)
 
 from . import b2
 from . import restic
-from .utils import TemporaryDirectory
 
 
 TEST_BUCKET_NAME = "baker-test-" + str(uuid.uuid4())[:8]
@@ -74,7 +73,7 @@ def test_restic_init():
     b2.empty_bucket(TEST_BUCKET_NAME)
     repo = "b2:%s" % TEST_BUCKET_NAME
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         out = restic.init(repo, [], "password", cache)
 
     messages = out.split("\n")[:-1]  # removes last end-of-line
@@ -89,7 +88,7 @@ def test_restic_backup():
     b2.empty_bucket(TEST_BUCKET_NAME)
     repo = "b2:%s" % TEST_BUCKET_NAME
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         restic.init(repo, [], "password", cache)
         out = restic.backup(
             SAMPLE_DIR1, repo, [], "hostname", [], "password", cache
@@ -110,7 +109,7 @@ def test_restic_check():
     b2.empty_bucket(TEST_BUCKET_NAME)
     repo = "b2:%s" % TEST_BUCKET_NAME
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         restic.init(repo, [], "password", cache)
         restic.backup(SAMPLE_DIR1, repo, [], "hostname", [], "password", cache)
         out = restic.check(repo, [], True, "password", cache)
@@ -129,7 +128,7 @@ def test_restic_snapshots():
     b2.empty_bucket(TEST_BUCKET_NAME)
     repo = "b2:%s" % TEST_BUCKET_NAME
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         restic.init(repo, [], "password", cache)
         restic.backup(SAMPLE_DIR1, repo, [], "hostname", [], "password", cache)
         restic.backup(SAMPLE_DIR1, repo, [], "hostname", [], "password", cache)
@@ -157,7 +156,7 @@ def test_restic_forget():
     b2.empty_bucket(TEST_BUCKET_NAME)
     repo = "b2:%s" % TEST_BUCKET_NAME
 
-    with TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as cache:
         restic.init(repo, [], "password", cache)
         restic.backup(SAMPLE_DIR1, repo, [], "hostname", [], "password", cache)
         data1 = restic.snapshots(

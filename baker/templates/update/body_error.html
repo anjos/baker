@@ -1,2 +1,2 @@
 {% extends "master.html" %}
-{% block action %}<b class="error">ERROR</b> detected while updating{% endblock %}
+{% block action %}<b class="error">ERROR</b> detected while {% if recovery %}recovering ({{ recovery }} attempt){% else %}updating{% endif %}{% endblock %}

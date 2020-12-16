@@ -7,13 +7,13 @@
 import os
 import nose.tools
 import pkg_resources
+import tempfile
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 from . import restic
-from .utils import TemporaryDirectory
 
 
 SAMPLE_DIR = pkg_resources.resource_filename(
@@ -34,7 +34,7 @@ def test_runner():
 
 def test_restic_init():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         out = restic.init(d, [], "password", cache)
 
     messages = out.split("\n")[:-1]  # removes last end-of-line
@@ -45,7 +45,7 @@ def test_restic_init():
 
 def test_restic_backup():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         restic.init(d, [], "password", cache)
         out = restic.backup(
             SAMPLE_DIR, d, [], "hostname", [], "password", cache
@@ -63,7 +63,7 @@ def test_restic_backup():
 
 def test_restic_check():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         restic.init(d, [], "password", cache)
         restic.backup(SAMPLE_DIR, d, [], "hostname", [], "password", cache)
         out = restic.check(d, [], False, "password", cache)
@@ -77,7 +77,7 @@ def test_restic_check():
 
 def test_restic_snapshots():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         restic.init(d, [], "password", cache)
         restic.backup(SAMPLE_DIR, d, [], "hostname", [], "password", cache)
         restic.backup(SAMPLE_DIR, d, [], "hostname", [], "password", cache)
@@ -102,7 +102,7 @@ def test_restic_snapshots():
 
 def test_restic_forget():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         restic.init(d, [], "password", cache)
         restic.backup(SAMPLE_DIR, d, [], "hostname", [], "password", cache)
         data1 = restic.snapshots(d, ["--json"], "hostname", "password", cache)
@@ -118,7 +118,7 @@ def test_restic_forget():
 
 def test_restic_rebuild_index():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         restic.init(d, [], "password", cache)
         restic.backup(SAMPLE_DIR, d, [], "hostname", [], "password", cache)
         out = restic.rebuild_index(d, [], "password", cache)
@@ -132,7 +132,7 @@ def test_restic_rebuild_index():
 
 def test_restic_prune():
 
-    with TemporaryDirectory() as d, TemporaryDirectory() as cache:
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as cache:
         restic.init(d, [], "password", cache)
         restic.backup(SAMPLE_DIR, d, [], "hostname", [], "password", cache)
         out = restic.prune(d, [], "password", cache)

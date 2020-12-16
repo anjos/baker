@@ -28,6 +28,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _ordinal(n):
+    return "%d%s" % (
+        n,
+        "tsnrhtdd"[(n // 10 % 10 != 1) * (n % 10 < 4) * n % 10 :: 4],
+    )
+
+
 def _send_message(
     subject_template,
     body_template_text,
@@ -194,8 +201,206 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
     return log, sizes, snapshots
 
 
+def _b2_update(
+    dire,
+    repo,
+    password,
+    cache,
+    hostname,
+    email,
+    keep,
+    max_recoveries,
+    recovery=0,
+):
+    """Runs a single update job on a specific b2 bucket
+
+    If the job fails, starts a number of recovery procedure on the same bucket,
+    until it is recovered.
+
+    Returns the log - e-mails if an error occur (and only on that condition)
+
+
+    Parameters
+    ==========
+
+    dire : str
+        The directory to be backed-up
+
+    repo : str
+        The remote repository (bucket) where the directory is going to be
+        backed-up
+
+    password : str
+        The encryption password
+
+    cache : str
+        Path leading to the cache directory used by the application
+
+    hostname : str
+        The hostname that will be used on the bucket
+
+    email : dict
+        A dictionary configuration for e-mail sending.  This dictionary
+        contains user credentials for the e-mail server and information on when
+        to send e-mails (e.g. only on errors, or always).
+
+    keep : str
+        The keeping policy to be used during pruning operation for the backup
+
+    max_recoveries : int
+        The maximum number of recoveries to attempt
+
+    recovery : int
+        The current recovery attempt
+
+
+    Returns
+    =======
+
+    error : bool
+        A boolean indicating if there was an error
+
+    log : str
+        The log of operations
+
+    """
+
+    error = False
+    log = ""
+
+    try:
+
+        if recovery > 0:
+
+            log += restic.unlock(
+                repository=repo,
+                global_options=[],
+                password=password,
+                cache=cache,
+                remove_all=False,  # only stale lock removal
+            )
+
+            log += restic.rebuild_index(
+                repository=repo,
+                global_options=[],
+                password=password,
+                cache=cache,
+            )
+
+        log += restic.backup(
+            directory=dire,
+            repository=repo,
+            global_options=[],
+            hostname=hostname,
+            backup_options=[],
+            password=password,
+            cache=cache,
+        )
+
+        if recovery > 0:
+            log += restic.prune(
+                repository=repo,
+                global_options=[],
+                password=password,
+                cache=cache,
+            )
+
+        log += restic.forget(
+            repository=repo,
+            global_options=[],
+            hostname=hostname,
+            prune=True,
+            keep=keep,
+            password=password,
+            cache=cache,
+        )
+
+        log += restic.check(
+            repository=repo,
+            global_options=[],
+            thorough=bool(recovery),
+            password=password,
+            cache=cache,
+        )
+
+        if recovery > 0:
+            # if we are recovering, it is nice to know that it went well
+            context = dict(
+                configs={dire:repo},
+                cache=cache,
+                log=log,
+                hostname=hostname,
+                recovery=_ordinal(recovery),
+            )
+            _send_message(
+                "update/subject_success.txt",
+                "update/body_success.txt",
+                "update/body_success.html",
+                context,
+                email,
+                error=True,  # send 'onerror' or 'always'
+            )
+
+    except Exception as e:
+        if recovery > 0:
+            logger.error(
+                "Error at %s recovery attempt:\n%s",
+                _ordinal(recovery),
+                traceback.format_exc(),
+            )
+        else:
+            logger.error("Error at update:\n%s", traceback.format_exc())
+
+        context = dict(
+            configs={dire:repo},
+            trace=traceback.format_exc(),
+            cache=cache,
+            log=log,
+            hostname=hostname,
+            recovery=False if (recovery == 0) else _ordinal(recovery),
+        )
+        _send_message(
+            "update/subject_error.txt",
+            "update/body_error.txt",
+            "update/body_error.html",
+            context,
+            email,
+            error=True,  # send 'onerror' or 'always'
+        )
+
+        if recovery < max_recoveries:
+            # tries again
+            e, l = _b2_update(
+                dire,
+                repo,
+                password,
+                cache,
+                hostname,
+                email,
+                keep,
+                max_recoveries=max_recoveries,
+                recovery=recovery + 1,
+            )
+            error |= e
+            log += l
+        else:
+            # something requires attention here, stop trying recoveries
+            error = True
+
+    return error, log
+
+
 def update(
-    configs, password, cache, hostname, email, b2_cred, keep, period, recover
+    configs,
+    password,
+    cache,
+    hostname,
+    email,
+    b2_cred,
+    keep,
+    period,
+    max_recoveries,
+    force_recovery,
 ):
     """Runs a continuous job (never exits) for keeping the backup updated"""
 
@@ -206,93 +411,41 @@ def update(
             os.environ.setdefault("B2_ACCOUNT_ID", b2_cred["id"])
             os.environ.setdefault("B2_ACCOUNT_KEY", b2_cred["key"])
 
+        error = False
         log = ""
 
-        try:
+        for dire, repo in configs.items():
 
-            for dire, repo in configs.items():
-
-                if recover:
-                    log += restic.unlock(
-                        repository=repo,
-                        global_options=[],
-                        password=password,
-                        cache=cache,
-                        remove_all=False,  # only stale lock removal
-                    )
-
-                    log += restic.rebuild_index(
-                        repository=repo,
-                        global_options=[],
-                        password=password,
-                        cache=cache,
-                    )
-
-                log += restic.backup(
-                    directory=dire,
-                    repository=repo,
-                    global_options=[],
-                    hostname=hostname,
-                    backup_options=[],
-                    password=password,
-                    cache=cache,
-                )
-
-                if recover:
-                    log += restic.prune(
-                        repository=repo,
-                        global_options=[],
-                        password=password,
-                        cache=cache,
-                    )
-
-                log += restic.forget(
-                    repository=repo,
-                    global_options=[],
-                    hostname=hostname,
-                    prune=True,
-                    keep=keep,
-                    password=password,
-                    cache=cache,
-                )
-
-                log += restic.check(
-                    repository=repo,
-                    global_options=[],
-                    thorough=recover,
-                    password=password,
-                    cache=cache,
-                )
-
-            context = dict(
-                configs=configs, cache=cache, log=log, hostname=hostname,
-            )
-            _send_message(
-                "update/subject_success.txt",
-                "update/body_success.txt",
-                "update/body_success.html",
-                context,
+            e, l = _b2_update(
+                dire,
+                repo,
+                password,
+                cache,
+                hostname,
                 email,
-                error=False,
+                keep,
+                max_recoveries,
+                recovery = 0 if not force_recovery else 1,
             )
+            error |= e
+            log += l
 
-        except Exception as e:
-            logger.error("Error at update:\n%s", traceback.format_exc())
-            context = dict(
-                configs=configs,
-                trace=traceback.format_exc(),
-                cache=cache,
-                log=log,
-                hostname=hostname,
-            )
-            _send_message(
-                "update/subject_error.txt",
-                "update/body_error.txt",
-                "update/body_error.html",
-                context,
-                email,
-                error=True,
-            )
+        # sends one e-mail with the whole logs for the procedure
+        context = dict(
+            configs=configs,
+            cache=cache,
+            log=log,
+            hostname=hostname,
+            recovery=False,
+        )
+        _send_message(
+            "update/subject_success.txt",
+            "update/body_success.txt",
+            "update/body_success.html",
+            context,
+            email,
+            error=False,  # send only if 'always' context is set
+        )
 
         return log
 

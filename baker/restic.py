@@ -7,16 +7,17 @@
 import os
 import copy
 import json
+import shutil
 import datetime
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-from .utils import run_cmdline, which
+from .utils import run_cmdline
 
 
-RESTIC_BIN = which("restic")
+RESTIC_BIN = shutil.which("restic")
 logger.debug("Using restic from `%s'", RESTIC_BIN)
 
 
@@ -250,6 +251,34 @@ def check(repository, global_options, thorough, password, cache):
         options = ["--check-unused"]
     else:
         options = ["--with-cache"]
+    return run_restic(
+        ["--repo", repository] + global_options,
+        "check",
+        options,
+        password,
+        cache,
+    )
+
+
+def lock(repository, password, cache):
+    """Locks a restic repository
+
+
+  Parameters:
+
+    repository (str): The restic repository that will hold the backup. This can
+      be either a local repository path or a BackBlaze B2 bucket name, duly
+      prefixed by ``b2:``.
+
+    password (str): The restic repository password
+
+    cache (str): The path to the cache directory to use for restic. If not set,
+      use the XDG cache default (typically ~/.cache/restic)
+
+  """
+
+    _assert_b2_setup(repository)
+    options = ["--with-cache"]
     return run_restic(
         ["--repo", repository] + global_options,
         "check",

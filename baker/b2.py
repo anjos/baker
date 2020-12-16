@@ -6,15 +6,16 @@
 import os
 import json
 import copy
-
+import shutil
+import tempfile
 import logging
 
 logger = logging.getLogger(__name__)
 
-from .utils import run_cmdline, which, TemporaryDirectory
+from .utils import run_cmdline
 
 
-B2_BIN = which("b2")
+B2_BIN = shutil.which("b2")
 logger.debug("Using b2 from `%s'", B2_BIN)
 
 
@@ -128,7 +129,7 @@ def empty_bucket(name):
 
   """
 
-    with TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory() as d:
         return sync(name, d)  # remove all contents
 
 

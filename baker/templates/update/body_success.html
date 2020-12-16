@@ -1,2 +1,2 @@
 {% extends "master.html" %}
-{% block action %}<b class="success">Successful</b> update of{% endblock %}
+{% block action %}<b class="success">Successful</b> {% if recovery %}recovery ({{ recovery }} attempt){% else %}update{% endif %} of{% endblock %}
