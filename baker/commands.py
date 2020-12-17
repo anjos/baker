@@ -201,7 +201,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
     return log, sizes, snapshots
 
 
-def _b2_update(
+def _do_update(
     dire,
     repo,
     password,
@@ -212,12 +212,10 @@ def _b2_update(
     max_recoveries,
     recovery=0,
 ):
-    """Runs a single update job on a specific b2 bucket
+    """Runs a single update job on a specific repository
 
-    If the job fails, starts a number of recovery procedure on the same bucket,
-    until it is recovered.
-
-    Returns the log - e-mails if an error occur (and only on that condition)
+    If the job fails, starts a number of recovery procedures on the same
+    repository, until it is recovered or a maximum number of tries is reached.
 
 
     Parameters
@@ -271,6 +269,8 @@ def _b2_update(
     try:
 
         if recovery > 0:
+            logger.info("Start %s recovery attempt -- max of %d (%s -> %s)",
+                    _ordinal(recovery), max_recoveries, dire, repo)
 
             log += restic.unlock(
                 repository=repo,
@@ -286,6 +286,8 @@ def _b2_update(
                 password=password,
                 cache=cache,
             )
+        else:
+            logger.info("Start back-up (%s -> %s)", dire, repo)
 
         log += restic.backup(
             directory=dire,
@@ -340,6 +342,11 @@ def _b2_update(
                 email,
                 error=True,  # send 'onerror' or 'always'
             )
+            logger.info("Finished recovery (%s -> %s)", dire, repo)
+
+        else:
+            logger.info("Finished back-up (%s -> %s)", dire, repo)
+
 
     except Exception as e:
         if recovery > 0:
@@ -370,7 +377,7 @@ def _b2_update(
 
         if recovery < max_recoveries:
             # tries again
-            e, l = _b2_update(
+            e, l = _do_update(
                 dire,
                 repo,
                 password,
@@ -416,7 +423,7 @@ def update(
 
         for dire, repo in configs.items():
 
-            e, l = _b2_update(
+            e, l = _do_update(
                 dire,
                 repo,
                 password,
