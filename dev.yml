@@ -1,7 +1,7 @@
 name: baker-dev
 channels:
 - anjos
-- defaults
+- conda-forge
 dependencies:
 - python=3.8
 - docopt
