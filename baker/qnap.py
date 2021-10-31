@@ -43,7 +43,7 @@ def api(session, server, url, verb='get', data=None, json=None, verify=False):
     server (str): The server to reach
 
     url (str): The URL to call on the container station API, relative to the
-      the address ``/containerstation/api/v1", which is always
+      the address ``/container-station/api/v1", which is always
       prepended.
 
     verb (str, Optional): One of the HTTP verbs to query the URL with. If not
@@ -64,7 +64,7 @@ def api(session, server, url, verb='get', data=None, json=None, verify=False):
 
   '''
 
-  url = server + '/containerstation/api/v1' + url
+  url = server + '/container-station/api/v1' + url
   logger.debug('%s %s', verb.upper(), url)
   with no_ssl_warnings(verify):
     return getattr(session, verb)(url, data=data, json=json, verify=verify)
@@ -105,7 +105,7 @@ def login(server, username, password, verify=False):
 
     session = requests.Session()
     data = dict(username=username, password=password)
-    result = api(session, server, '/login', verb='post', data=data, verify=verify)
+    result = api(session, server, '/login', verb='post', json=data, verify=verify)
 
   if result.status_code != 200:
     raise RuntimeError('Login request failed with status code %d' % \
