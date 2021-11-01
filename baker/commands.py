@@ -8,12 +8,12 @@ import time
 import shutil
 import datetime
 import traceback
+import importlib.metadata
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-import pkg_resources
 import schedule
 import jinja2
 
@@ -46,7 +46,7 @@ def _send_message(
     """Sends an e-mail message or logs only"""
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader(__name__, "templates"),
+        loader=jinja2.PackageLoader(__package__, "templates"),
         autoescape=jinja2.select_autoescape(
             disabled_extensions=("txt",), default_for_string=True, default=True
         ),
@@ -62,7 +62,7 @@ def _send_message(
 
     # completes the context with package variables
     context["package"] = "baker"
-    context["version"] = pkg_resources.require("baker")[0].version
+    context["version"] = importlib.metadata.version(__package__)
 
     subject = env.get_template(subject_template).render(**context)
     body_text = env.get_template(body_template_text).render(**context)

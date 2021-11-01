@@ -169,12 +169,12 @@ import os
 import sys
 import socket
 import collections
+import importlib.metadata
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-import pkg_resources
 import docopt
 
 from . import restic
@@ -191,7 +191,7 @@ def main(user_input=None):
 
     completions = dict(
         prog=os.path.basename(sys.argv[0]),
-        version=pkg_resources.require("baker")[0].version,
+        version=importlib.metadata.version(__package__),
         hostname=socket.gethostname(),
     )
 
