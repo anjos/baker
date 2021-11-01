@@ -27,7 +27,7 @@ SAMPLE_DIR2 = pkg_resources.resource_filename(
 @nose.tools.raises(SystemExit)
 def test_help():
 
-    with StdoutCapture() as buf:
+    with StdoutCapture():
         bake.main(["--help"])
 
 

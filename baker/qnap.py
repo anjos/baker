@@ -8,10 +8,8 @@ See documentation here: http://qnap-dev.github.io/container-station-api/index.ht
 
 
 import os
-import sys
 import pickle
 import requests
-import getpass
 import warnings
 import contextlib
 import importlib.metadata

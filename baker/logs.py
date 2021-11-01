@@ -3,14 +3,13 @@
 
 """Dump (optionless) script that retrieves logs from one of our containers"""
 
-import os
 import sys
 from . import qnap, utils, reporter
 
 
 def main():
 
-    logger = reporter.setup_logger("baker", 2)
+    reporter.setup_logger("baker", 2)
 
     nas = utils.retrieve_json_secret("nas/info.json")
     server = nas["server"]

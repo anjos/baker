@@ -11,7 +11,7 @@ def main():
     buckets = b2.list_buckets()
     count = 0
     delete_keys = []
-    for k, v in buckets.items():
+    for k in buckets.keys():
         if k.startswith("baker-test-"):
             count += 1
             print('Removing test bucket "%s"...' % k)

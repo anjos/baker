@@ -196,7 +196,9 @@ def main(user_input=None):
     )
 
     args = docopt.docopt(
-        __doc__ % completions, argv=argv, version=completions["version"],
+        __doc__ % completions,
+        argv=argv,
+        version=completions["version"],
     )
 
     if args["<file>"] is not None:

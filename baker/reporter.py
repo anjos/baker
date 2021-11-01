@@ -4,7 +4,6 @@
 """Reporting infrastructure"""
 
 
-import os
 import sys
 import io
 import smtplib
@@ -21,20 +20,20 @@ class Email(object):
     """An object representing a message to be sent to maintainers
 
 
-  Parameters:
+    Parameters:
 
-    subject (str): The e-mail subject
+      subject (str): The e-mail subject
 
-    body_text (str): The e-mail body in text format
+      body_text (str): The e-mail body in text format
 
-    body_html (str, None): The e-mail body in HTML format or None if not
-      supposed to be sent
+      body_html (str, None): The e-mail body in HTML format or None if not
+        supposed to be sent
 
-    sender (str): The e-mail sender
+      sender (str): The e-mail sender
 
-    to (str): The e-mail receiver
+      to (str): The e-mail receiver
 
-  """
+    """
 
     def __init__(self, subject, body_text, body_html, sender, to):
 
@@ -72,16 +71,16 @@ def setup_logger(name, verbosity):
     """Sets up the logging of a script
 
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the logger to setup
+      name (str): The name of the logger to setup
 
-    verbosity (int): The verbosity level to operate with. A value of ``0``
-      (zero) means only errors, ``1``, errors and warnings; ``2``, errors,
-      warnings and informational messages and, finally, ``3``, all types of
-      messages including debugging ones.
+      verbosity (int): The verbosity level to operate with. A value of ``0``
+        (zero) means only errors, ``1``, errors and warnings; ``2``, errors,
+        warnings and informational messages and, finally, ``3``, all types of
+        messages including debugging ones.
 
-  """
+    """
 
     logger = logging.getLogger(name)
     formatter = logging.Formatter(
@@ -156,13 +155,13 @@ def human_time(seconds, granularity=2):
 class LogCapture(object):
     """Captures messages for a particular logger from the python logging service
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the base logger to capture messages from
+      name (str): The name of the base logger to capture messages from
 
-    level (int, Optional): The integer level to set the handler to
+      level (int, Optional): The integer level to set the handler to
 
-  """
+    """
 
     def __init__(self, name, level=logging.DEBUG):
 
@@ -186,13 +185,13 @@ class LogCapture(object):
 class StdoutCapture(object):
     """Captures messages from stdout
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the base logger to capture messages from
+      name (str): The name of the base logger to capture messages from
 
-    level (int, Optional): The integer level to set the handler to
+      level (int, Optional): The integer level to set the handler to
 
-  """
+    """
 
     def __init__(self):
 

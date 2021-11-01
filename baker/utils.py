@@ -30,24 +30,24 @@ def run_cmdline(cmd, env=None, mask=None):
     """Runs a command on a environment, logs output and reports status
 
 
-  Parameters:
+    Parameters:
 
-    cmd (list): The command to run, with parameters separated on a list
+      cmd (list): The command to run, with parameters separated on a list
 
-    env (dict, Optional): Environment to use for running the program on. If not
-      set, use :py:obj:`os.environ`.
+      env (dict, Optional): Environment to use for running the program on. If not
+        set, use :py:obj:`os.environ`.
 
-    mask (int, Optional): If set to a value that is different than ``None``,
-      then we replace everything from the cmd list index ``[mask:]`` by
-      asterisks.  This may be imoprtant to avoid passwords or keys to be shown
-      on the screen or sent via email.
+      mask (int, Optional): If set to a value that is different than ``None``,
+        then we replace everything from the cmd list index ``[mask:]`` by
+        asterisks.  This may be imoprtant to avoid passwords or keys to be shown
+        on the screen or sent via email.
 
 
-  Returns:
+    Returns:
 
-    str: The standard output and error of the command being executed
+      str: The standard output and error of the command being executed
 
-  """
+    """
 
     if env is None:
         env = os.environ

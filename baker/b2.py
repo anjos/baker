@@ -23,21 +23,21 @@ def run_b2(args, mask=None):
     """Runs the b2 binary with the provided arguments
 
 
-  Parameters:
+    Parameters:
 
-    args (list): List of arguments to pass to the ``b2`` binary
+      args (list): List of arguments to pass to the ``b2`` binary
 
-    mask (int, Optional): If set to a value that is different than ``None``,
-      then we replace everything from the cmd list index ``[mask:]`` by
-      asterisks.  This may be imoprtant to avoid passwords or keys to be shown
-      on the screen or sent via email.
+      mask (int, Optional): If set to a value that is different than ``None``,
+        then we replace everything from the cmd list index ``[mask:]`` by
+        asterisks.  This may be imoprtant to avoid passwords or keys to be shown
+        on the screen or sent via email.
 
 
-  Returns:
+    Returns:
 
-    str: Standard output and error
+      str: Standard output and error
 
-  """
+    """
 
     if not B2_BIN:
         raise RuntimeError(
@@ -47,8 +47,7 @@ def run_b2(args, mask=None):
 
 
 def version():
-    """Returns the result of ``b2 version``
-  """
+    """Returns the result of ``b2 version``"""
 
     return run_b2(["version"])
 
@@ -56,26 +55,25 @@ def version():
 def get_account_info():
     """Returns the current account information
 
-  This function will return a dictionary with account information retrieved
-  from the SQLite file kept by the b2 command-line program. It will return
-  and empty dictionary if no authorization information is available.
+    This function will return a dictionary with account information retrieved
+    from the SQLite file kept by the b2 command-line program. It will return
+    and empty dictionary if no authorization information is available.
 
 
-  Returns:
+    Returns:
 
-    dict: The account information, if the user is logged-in
+      dict: The account information, if the user is logged-in
 
-  """
+    """
 
     try:
         return json.loads(run_b2(["get-account-info"]))
-    except RuntimeError as e:
+    except RuntimeError:
         return None
 
 
 def clear_account():
-    """Logs off, removes the authorization file kept locally and all credentials
-  """
+    """Logs off, removes the authorization file kept locally and all credentials"""
 
     return run_b2(["clear-account"])
 
@@ -84,14 +82,14 @@ def authorize_account(account_id, key):
     """Runs the authorization procedure for the b2 cmdline tool
 
 
-  Parameters:
+    Parameters:
 
-    account_id (str): The BackBlaze B2 account identifier
+      account_id (str): The BackBlaze B2 account identifier
 
-    key (str): The BackBlaze B2 key to use to run the command. This key must
-      have access to the specified bucket.
+      key (str): The BackBlaze B2 key to use to run the command. This key must
+        have access to the specified bucket.
 
-  """
+    """
 
     return run_b2(["authorize-account", account_id, key], mask=2)
 
@@ -99,17 +97,17 @@ def authorize_account(account_id, key):
 def sync(bucket, path):
     """Synchronizes contents of the given path to the bucket
 
-  This function is primarily for tests as it **destructively** syncs local
-  folder contents to the remote bucket
+    This function is primarily for tests as it **destructively** syncs local
+    folder contents to the remote bucket
 
 
-  Parameters:
+    Parameters:
 
-    bucket (str): The name of the bucket to use for sync'ing
-    path (str): Local path to a directory whose contents will be synchronized
-      with the bucket
+      bucket (str): The name of the bucket to use for sync'ing
+      path (str): Local path to a directory whose contents will be synchronized
+        with the bucket
 
-  """
+    """
 
     return run_b2(
         ["sync", "--allowEmptySource", "--delete", path, "b2://%s" % bucket]
@@ -119,15 +117,15 @@ def sync(bucket, path):
 def empty_bucket(name):
     """Empties the contents of a BackBlaze B2 bucket
 
-  Follows the following implementation advice: https://help.backblaze.com/hc/en-us/articles/225556127-How-Can-I-Easily-Delete-All-Files-in-a-Bucket-
+    Follows the following implementation advice: https://help.backblaze.com/hc/en-us/articles/225556127-How-Can-I-Easily-Delete-All-Files-in-a-Bucket-
 
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the bucket to remove contents from
+      name (str): The name of the bucket to remove contents from
 
 
-  """
+    """
 
     with tempfile.TemporaryDirectory() as d:
         return sync(name, d)  # remove all contents
@@ -137,16 +135,16 @@ def get_bucket(name):
     """Returns information about a BackBlaze B2 bucket
 
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the bucket to remove
+      name (str): The name of the bucket to remove
 
 
-  Returns:
+    Returns:
 
-    dict: With the JSON contents returned by the ``get-bucket`` command.
+      dict: With the JSON contents returned by the ``get-bucket`` command.
 
-  """
+    """
 
     # --showSize will include the size in version 1.1.0+
     return json.loads(run_b2(["get-bucket", "--showSize", name]))
@@ -155,24 +153,24 @@ def get_bucket(name):
 def remove_bucket(name):
     """Removes a BackBlaze B2 bucket
 
-  Follows the following implementation advice: https://help.backblaze.com/hc/en-us/articles/225556127-How-Can-I-Easily-Delete-All-Files-in-a-Bucket-
+    Follows the following implementation advice: https://help.backblaze.com/hc/en-us/articles/225556127-How-Can-I-Easily-Delete-All-Files-in-a-Bucket-
 
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the bucket to remove
+      name (str): The name of the bucket to remove
 
 
-  Returns:
+    Returns:
 
-    dict: With the JSON contents returned by the ``get-bucket`` command. The
-    snippet contains the deleted bucket information.
+      dict: With the JSON contents returned by the ``get-bucket`` command. The
+      snippet contains the deleted bucket information.
 
-  """
+    """
 
     empty_bucket(name)
     retval = get_bucket(name)
-    assert not run_b2(["delete-bucket", name])  #returns empty string
+    assert not run_b2(["delete-bucket", name])  # returns empty string
     return retval
 
 
@@ -180,14 +178,14 @@ def create_bucket(name, tp="allPrivate"):
     """Creates a new (private) bucket
 
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the bucket to remove
-    tp (str, Optional): Either ``allPrivate`` or ``allPublic``. Supported
-      values are described at
-      https://www.backblaze.com/b2/docs/b2_create_bucket.html
+      name (str): The name of the bucket to remove
+      tp (str, Optional): Either ``allPrivate`` or ``allPublic``. Supported
+        values are described at
+        https://www.backblaze.com/b2/docs/b2_create_bucket.html
 
-  """
+    """
 
     # from: https://www.backblaze.com/b2/docs/lifecycle_rules.html
     # check the end of the page for set recipes: here, we delete all
@@ -219,14 +217,14 @@ def list_buckets():
     """List all available buckets
 
 
-  Returns:
+    Returns:
 
-    dict: A dictionary of buckets available in which keys are bucket names and
-    values are bucket properties. Each value contains two bucket properties:
-    ID (hexadecimal string) and bucket type (either "allPublic" or
-    "allPrivate").
+      dict: A dictionary of buckets available in which keys are bucket names and
+      values are bucket properties. Each value contains two bucket properties:
+      ID (hexadecimal string) and bucket type (either "allPublic" or
+      "allPrivate").
 
-  """
+    """
 
     out = run_b2(["list-buckets"])
     if out.endswith("\n"):
@@ -240,22 +238,22 @@ def bucket_contents(name, folder=None):
     """List bucket contents
 
 
-  Parameters:
+    Parameters:
 
-    name (str): The name of the bucket to check
-    path (str, Optional): Sub-folder within the bucket to check for contents
+      name (str): The name of the bucket to check
+      path (str, Optional): Sub-folder within the bucket to check for contents
 
 
-  Returns:
+    Returns:
 
-    list: A list containing the files on the given bucket and subfolder (if
-    provided)
+      list: A list containing the files on the given bucket and subfolder (if
+      provided)
 
-  """
+    """
 
     args = ["ls", name]
     if folder:
-        cmd += [folder]
+        args += [folder]
     out = run_b2(args)
     if out.endswith("\n"):
         out = out[:-1]
@@ -265,31 +263,31 @@ def bucket_contents(name, folder=None):
 def setup(b2_id=None, b2_key=None):
     """Sets up authorization for BackBlaze B2 operations
 
-  This method will setup the B2 infrastructure for restic and b2's command-line
-  app so it works flawlessly taking into consideration:
+    This method will setup the B2 infrastructure for restic and b2's command-line
+    app so it works flawlessly taking into consideration:
 
-    1. Values passed as parameters
-    2. Previously authenticated sessions (~/.b2_info)
-    3. b2's command-line app authorization files (~/.b2_auth)
-    4. Environment variables B2_ACCOUNT_ID and B2_ACCOUNT_KEY
+      1. Values passed as parameters
+      2. Previously authenticated sessions (~/.b2_info)
+      3. b2's command-line app authorization files (~/.b2_auth)
+      4. Environment variables B2_ACCOUNT_ID and B2_ACCOUNT_KEY
 
-  It will then authorize the b2 command-line application and setup
-  B2_ACCOUNT_ID and B2_ACCOUNT_KEY so that restic's command-line app works with
-  the same tokens.
-
-
-  Parameters:
-
-    b2_id (str, Optional): The b2 account identifier
-    b2_key (str, Optional): The b2 application key to use for the transactions
+    It will then authorize the b2 command-line application and setup
+    B2_ACCOUNT_ID and B2_ACCOUNT_KEY so that restic's command-line app works with
+    the same tokens.
 
 
-  Returns:
+    Parameters:
 
-    str: The b2 account identifier
-    str: The b2 application key
+      b2_id (str, Optional): The b2 account identifier
+      b2_key (str, Optional): The b2 application key to use for the transactions
 
-  """
+
+    Returns:
+
+      str: The b2 account identifier
+      str: The b2 application key
+
+    """
 
     B2_AUTH_FILE = os.path.expanduser("~/.b2_auth")
 

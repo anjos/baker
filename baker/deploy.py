@@ -3,7 +3,6 @@
 
 """Dump (optionless) script that just deployes all our containers"""
 
-import os
 from . import qnap, utils, reporter
 
 
@@ -21,7 +20,7 @@ def _delete_create(session, server, name, existing, options):
 
 def main():
 
-    logger = reporter.setup_logger("baker", 3)
+    reporter.setup_logger("baker", 3)
 
     common_command = utils.retrieve_json_secret("baker/deploy.json")
     common_options = [

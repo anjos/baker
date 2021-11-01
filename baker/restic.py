@@ -27,29 +27,29 @@ def run_restic(
     """Runs restic on a contained environment, report output and status
 
 
-  Runs the restic binary on the provided environment, capturing output and
-  status exit code.
+    Runs the restic binary on the provided environment, capturing output and
+    status exit code.
 
 
-  Parameters:
+    Parameters:
 
-    global_options (list): A list of global options to pass to restic
+      global_options (list): A list of global options to pass to restic
 
-    subcmd (str): The subcommand to call
+      subcmd (str): The subcommand to call
 
-    subcmd_options (list): A list of subcommand specific options
+      subcmd_options (list): A list of subcommand specific options
 
-    password (str, Optional): The restic repository password
+      password (str, Optional): The restic repository password
 
-    cache (str, Optional): The path to the cache directory to use for restic.
-      If not set, use the XDG cache default (typically ~/.cache/restic)
+      cache (str, Optional): The path to the cache directory to use for restic.
+        If not set, use the XDG cache default (typically ~/.cache/restic)
 
 
-  Returns:
+    Returns:
 
-    bool: ``True`` if the program returned 0 exit status (ran w/o problems)
+      bool: ``True`` if the program returned 0 exit status (ran w/o problems)
 
-  """
+    """
 
     if not RESTIC_BIN:
         raise RuntimeError(
@@ -85,8 +85,7 @@ def _assert_b2_setup(repo):
 
 
 def version():
-    """Returns the result of ``restic version``
-  """
+    """Returns the result of ``restic version``"""
 
     return run_restic([], "version", [])
 
@@ -94,25 +93,25 @@ def version():
 def init(repository, global_options, password, cache):
     """Initializes a restic repository
 
-  The repository may be local or sitting on a remote B2 bucket
+    The repository may be local or sitting on a remote B2 bucket
 
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
-  """
+    """
 
     _assert_b2_setup(repository)
     return run_restic(
@@ -131,35 +130,35 @@ def backup(
 ):
     """Performs the backup
 
-  This command executes ``restic backup`` for the provided local directory on
-  the remote repository.
+    This command executes ``restic backup`` for the provided local directory on
+    the remote repository.
 
 
-  Parameters:
+    Parameters:
 
-    directory (str): The path leading to the directory that is going to be
-      backed up
+      directory (str): The path leading to the directory that is going to be
+        backed up
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    hostname (str): The name of the host to use for backing-up
+      hostname (str): The name of the host to use for backing-up
 
-    backup_options (list): A list of backup options to pass to restic (like
-      ``--exclude`` flags) - don't pass ``--host`` as this will be included
-      automatically
+      backup_options (list): A list of backup options to pass to restic (like
+        ``--exclude`` flags) - don't pass ``--host`` as this will be included
+        automatically
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
-  """
+    """
 
     _assert_b2_setup(repository)
     return run_restic(
@@ -174,35 +173,35 @@ def backup(
 def forget(repository, global_options, hostname, prune, keep, password, cache):
     """Performs the backup
 
-  This command executes ``restic forget`` for the provided local directory on
-  the remote repository.
+    This command executes ``restic forget`` for the provided local directory on
+    the remote repository.
 
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    hostname (str): The name of the host to use for backing-up
+      hostname (str): The name of the host to use for backing-up
 
-    prune (bool): A flag indicating if we should prune while forgetting.
-      Typicall, this should be ``True``.
+      prune (bool): A flag indicating if we should prune while forgetting.
+        Typicall, this should be ``True``.
 
-    keep (dict): A dictionary containing the number of snapshots to keep per
-      category. Valid values are 'last', 'hourly', 'daily', 'weekly',
-      'monthly' and 'yearly'. You may include all or just some of these.
+      keep (dict): A dictionary containing the number of snapshots to keep per
+        category. Valid values are 'last', 'hourly', 'daily', 'weekly',
+        'monthly' and 'yearly'. You may include all or just some of these.
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
-  """
+    """
 
     _assert_b2_setup(repository)
 
@@ -222,28 +221,28 @@ def forget(repository, global_options, hostname, prune, keep, password, cache):
 def check(repository, global_options, thorough, password, cache):
     """Checks the sanity of a restic repository
 
-  This procedure is recommended after each forget operation
+    This procedure is recommended after each forget operation
 
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    thorough (bool): If set to ``True``, then don't use cached data for a
-      check. Otherwise, it does.
+      thorough (bool): If set to ``True``, then don't use cached data for a
+        check. Otherwise, it does.
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
-  """
+    """
 
     _assert_b2_setup(repository)
 
@@ -264,18 +263,18 @@ def lock(repository, password, cache):
     """Locks a restic repository
 
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
-  """
+    """
 
     _assert_b2_setup(repository)
     options = ["--with-cache"]
@@ -291,31 +290,31 @@ def lock(repository, password, cache):
 def snapshots(repository, global_options, hostname, password, cache):
     """Lists current snapshots available
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    hostname (str): The name of the host to use for backing-up
+      hostname (str): The name of the host to use for backing-up
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
 
-  Returns:
+    Returns:
 
-    list: A list of dictionaries with the properties of each snapshot following
-    the specifications. The list is organized by snapshot date, the first being
-    the oldest snapshot and the last the youngest.
+      list: A list of dictionaries with the properties of each snapshot following
+      the specifications. The list is organized by snapshot date, the first being
+      the oldest snapshot and the last the youngest.
 
-  """
+    """
 
     _assert_b2_setup(repository)
 
@@ -340,30 +339,30 @@ def snapshots(repository, global_options, hostname, password, cache):
 def unlock(repository, global_options, password, cache, remove_all):
     """Removes stale locks from a remote repository
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
-    remove_all (bool): If we should remove all locks (including non-stale ones).
-      This will pass the subcommand option ``--remove-all`` to restic
+      remove_all (bool): If we should remove all locks (including non-stale ones).
+        This will pass the subcommand option ``--remove-all`` to restic
 
 
-  Returns:
+    Returns:
 
-    str: The output of the command
+      str: The output of the command
 
-  """
+    """
 
     _assert_b2_setup(repository)
     unlock_options = ["--remove-all"] if remove_all else []
@@ -379,27 +378,27 @@ def unlock(repository, global_options, password, cache, remove_all):
 def rebuild_index(repository, global_options, password, cache):
     """Rebuilds the index on an existing repository
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
 
-  Returns:
+    Returns:
 
-    str: The output of the command
+      str: The output of the command
 
-  """
+    """
 
     _assert_b2_setup(repository)
 
@@ -415,27 +414,27 @@ def rebuild_index(repository, global_options, password, cache):
 def prune(repository, global_options, password, cache):
     """Prunes unreferenced objects on an existing repository
 
-  Parameters:
+    Parameters:
 
-    repository (str): The restic repository that will hold the backup. This can
-      be either a local repository path or a BackBlaze B2 bucket name, duly
-      prefixed by ``b2:``.
+      repository (str): The restic repository that will hold the backup. This can
+        be either a local repository path or a BackBlaze B2 bucket name, duly
+        prefixed by ``b2:``.
 
-    global_options (list): A list of global options to pass to restic (like
-      ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
-      this will be included automatically
+      global_options (list): A list of global options to pass to restic (like
+        ``--limit-download`` or ``--limit-upload``) - don't include ``--repo`` as
+        this will be included automatically
 
-    password (str): The restic repository password
+      password (str): The restic repository password
 
-    cache (str): The path to the cache directory to use for restic. If not set,
-      use the XDG cache default (typically ~/.cache/restic)
+      cache (str): The path to the cache directory to use for restic. If not set,
+        use the XDG cache default (typically ~/.cache/restic)
 
 
-  Returns:
+    Returns:
 
-    str: The output of the command
+      str: The output of the command
 
-  """
+    """
 
     _assert_b2_setup(repository)
 

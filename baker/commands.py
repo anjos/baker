@@ -101,7 +101,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
 
     try:
 
-        for k, (dire, repo) in enumerate(configs.items()):
+        for dire, repo in configs.items():
 
             if repo.startswith("b2:"):  # BackBlaze B2 repository
                 log += b2.authorize_account(b2_cred["id"], b2_cred["key"])
@@ -180,7 +180,7 @@ def init(configs, password, cache, overwrite, hostname, email, b2_cred):
                 error=False,
             )
 
-    except Exception as e:
+    except Exception:
         logger.error("Error at initialization:\n%s", traceback.format_exc())
         context = dict(
             configs=configs,
@@ -489,7 +489,7 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
 
             alarm_condition = False
 
-            for dire, repo in configs.items():
+            for repo in configs.values():
 
                 if period is None:  # calling a single time
                     if repo.startswith("b2:"):  # BackBlaze B2 repository
@@ -546,7 +546,7 @@ def check(configs, password, cache, hostname, email, b2_cred, alarm, period):
                     error=False,
                 )
 
-        except Exception as e:
+        except Exception:
             logger.error("Error at update:\n%s", traceback.format_exc())
             context = dict(
                 configs=configs,
