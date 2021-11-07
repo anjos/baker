@@ -9,21 +9,21 @@ source:
   path: ../
 
 build:
+  noarch: python
   number: 0
-  preserve_egg_dir: True
-  script: python setup.py install --single-version-externally-managed --record=record.txt
-  entry_points:
-    - bake = baker.bake:main
+  script:
+    - "{{ PYTHON }} -m pip install . -vv"
 
 requirements:
   build:
     - python
-    - setuptools
+    - pip
 
   run:
     - python
-    - restic >=0.11
-    - b2 >=2.1
+    - setuptools
+    - restic >=0.12.1
+    - b2 >=3.0.3
     - docopt
     - jinja2
     - schedule
@@ -34,11 +34,11 @@ test:
     - {{ name }}
 
   requires:
-    - nose
-    - coverage
+    - pytest
+    - pytest-cov
 
   commands:
-    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+    - pytest --capture=no --verbose --cov {{ name }} --pyargs {{ name }}
 
 about:
   home: https://github.com/anjos/baker

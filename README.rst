@@ -17,9 +17,9 @@ Installation
 I advise you to install a Conda_-based environment for deployment with this
 command line::
 
-  $ conda create --override-channels -c anjos -c defaults -n baker python=x.y baker
+  $ conda create --override-channels -c anjos -c conda-forge -n baker python=x.y baker
 
-Where ``x.y`` can be only ``3.7``. Once the environment is installed, activate
+Where ``x.y`` can be only ``3.9``. Once the environment is installed, activate
 it to be able to call binaries::
 
   $ source activate baker
@@ -60,7 +60,7 @@ Testing
 
 To test the package, run the following::
 
-  $ ./bin/nosetests -sv --with-coverage --cover-package=baker
+  $ ./bin/pytest -sv
 
 
 If tests fail, it is possible test buckets are kept on your B2 account. To
@@ -80,8 +80,6 @@ prepare::
 Then, you can build dependencies one by one, in order::
 
   $ vi ./scripts/conda-build-all.sh #comment/uncomment what to compile
-  $ conda activate base
-  $ #start the docker daemon, if that is not the case
   (base) $ ./scripts/conda-build-all.sh
 
 .. note::
@@ -190,6 +188,5 @@ certain threshold - in seconds)::
 
 .. Place your references after this line
 .. _conda: http://conda.pydata.org/miniconda.html
-.. _mediainfo: https://mediaarea.net/en/MediaInfo
 .. _qpkg: https://wiki.qnap.com/wiki/QPKG_Development_Guidelines
 .. _dockerhub: https://hub.docker.com/r/anjos/baker/
