@@ -6,7 +6,6 @@
 
 
 from . import qnap
-import nose.tools
 
 
 session = None
@@ -26,8 +25,8 @@ def teardown():
 def test_system():
 
     info = qnap.system(session)
-    nose.tools.eq_(info["status"], "running")
-    nose.tools.eq_(info["needRestart"], False)
+    assert info["status"] == "running"
+    assert info["needRestart"] == False
 
 
 def test_get_containers():

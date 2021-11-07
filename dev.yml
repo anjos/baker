@@ -3,18 +3,20 @@ channels:
 - anjos
 - conda-forge
 dependencies:
-- python=3.8
+- python=3.9
 - docopt
 - schedule
+- requests
 - jinja2
-- b2>=2.1
-- restic>=0.11
+- b2
+- restic
+- pytest
+# for bob.buildout
 - sphinx
 - sphinx_rtd_theme
+- pytest-cov
 - nose
-- coverage
+- ipdb
 - pip
 - pip:
-    - ipdb
     - bob.buildout
-    - mr.developer

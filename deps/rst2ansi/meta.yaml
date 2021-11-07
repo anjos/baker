@@ -1,0 +1,40 @@
+{% set version = "0.1.5" %}
+
+package:
+  name: rst2ansi
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/Snaipe/python-rst2ansi
+  git_rev: v{{ version }}
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python
+    - pip
+
+  run:
+    - python
+    - docutils
+
+test:
+  source_files:
+    - test
+
+  imports:
+    - rst2ansi
+
+about:
+  home: https://github.com/Snaipe/python-rst2ansi
+  license: MIT
+  summary: 'A rst converter to ansi-decorated console output'
+
+extra:
+  recipe-maintainers:
+    - anjos

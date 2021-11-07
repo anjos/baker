@@ -1,0 +1,44 @@
+diff --git a/setup.cfg b/pyproject.toml
+similarity index 67%
+rename from setup.cfg
+rename to pyproject.toml
+index 81f3115..ee2635b 100644
+--- a/setup.cfg
++++ b/pyproject.toml
+@@ -1,10 +1,15 @@
+-[yapf]
++[build-system]
++requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
++
++[tool.setuptools_scm]
++
++[tool.yapf]
+ based_on_style=facebook
+ COLUMN_LIMIT=140
+ SPACE_BETWEEN_ENDING_COMMA_AND_CLOSING_BRACKET=False
+ SPLIT_PENALTY_AFTER_OPENING_BRACKET=0
+ 
+-[flake8]
++[tool.flake8]
+ ignore=W503,D100,D105,D202
+ per-file-ignores=
+   __init__.py:F401,F403
+@@ -14,5 +19,5 @@ max-line-length=140
+ max-complexity=20
+ doctests=1
+ 
+-[coverage:run]
++[tool.coverage.run]
+ branch=true
+diff --git a/setup.py b/setup.py
+index b244da4..6ca31bc 100644
+--- a/setup.py
++++ b/setup.py
+@@ -71,7 +71,4 @@ setup(
+ 
+     classifiers      = CLASSIFIERS,
+     package_data     = {NAME: ['requirements.txt', 'LICENSE']},
+-
+-    setup_requires   = ['setuptools_scm<6.0'],  # setuptools_scm>=6.0 doesn't support Python 3.5
+-    use_scm_version  = True,
+ )  # yapf: disable

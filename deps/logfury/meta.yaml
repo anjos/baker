@@ -1,4 +1,4 @@
-{% set version = "0.1.2" %}
+{% set version = "1.0.1" %}
 
 package:
   name: logfury
@@ -6,13 +6,15 @@ package:
 
 source:
   git_url: https://github.com/ppolewicz/logfury
-  git_rev: {{ version }}
+  git_rev: v{{ version }}
+  patches:
+    - no_setup_requires.patch
 
 build:
   noarch: python
   number: 1
   preserve_egg_dir: True
-  script: python -m pip install --no-deps --ignore-installed .
+  script: "{{ PYTHON }} -m pip install . -vv"
 
 requirements:
   host:
@@ -21,15 +23,14 @@ requirements:
 
   run:
     - python
-    - six
-    - funcsigs
 
 test:
   source_files:
     - test
 
   requires:
-    - nose
+    - pytest
+    - pytest-cov
     - pyflakes
     - yapf
     - testfixtures
@@ -38,7 +39,7 @@ test:
     - logfury
 
   commands:
-    - nosetests -sv test/v0_1/*.py
+    - pytest -sv test/v1/*.py
 
 about:
   home: https://github.com/ppolewicz/logfury

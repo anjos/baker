@@ -7,7 +7,8 @@
 import os
 import time
 import tempfile
-import nose.tools
+
+import pytest
 import pkg_resources
 
 from .reporter import StdoutCapture, LogCapture
@@ -24,10 +25,9 @@ SAMPLE_DIR2 = pkg_resources.resource_filename(
 )
 
 
-@nose.tools.raises(SystemExit)
 def test_help():
 
-    with StdoutCapture():
+    with pytest.raises(SystemExit), StdoutCapture():
         bake.main(["--help"])
 
 
@@ -44,10 +44,10 @@ def run_init(repo, b2):
             b2,
         )
 
-    nose.tools.eq_(len(sizes), 1)
-    nose.tools.eq_(len(snaps), 1)
+    assert len(sizes) == 1
+    assert len(snaps) == 1
     assert sizes[repo] != 0
-    nose.tools.eq_(snaps[0]["paths"], [SAMPLE_DIR1])
+    assert snaps[0]["paths"] == [SAMPLE_DIR1]
     assert "parent" not in snaps[0]  # it is the first snapshot of repository
 
     messages = log.split("\n")[:-1]  # removes last end-of-line
@@ -85,7 +85,7 @@ def run_init_error(repo, b2):
             b2,
         )
 
-    assert "ERROR during initialization" in buf.read()
+    assert "Error at initialization" in buf.read()
 
 
 def test_init_error():
@@ -116,14 +116,14 @@ def run_init_multiple(repo1, repo2, b2):
             b2,
         )
 
-    nose.tools.eq_(len(sizes), 2)
+    assert len(sizes) == 2
     assert sizes[repo1] != 0
     assert sizes[repo2] != 0
 
-    nose.tools.eq_(len(snaps), 2)
-    nose.tools.eq_(snaps[0]["paths"], [SAMPLE_DIR1])
+    assert len(snaps) == 2
+    assert snaps[0]["paths"] == [SAMPLE_DIR1]
     assert "parent" not in snaps[0]  # it is the first snapshot of repository
-    nose.tools.eq_(snaps[1]["paths"], [SAMPLE_DIR2])
+    assert snaps[1]["paths"] == [SAMPLE_DIR2]
     assert "parent" not in snaps[1]  # it is the first snapshot of repository
 
     messages = log.split("\n")[:-1]  # removes last end-of-line
@@ -169,7 +169,7 @@ def run_init_cmdline(repo, options):
             ]
         )
 
-    nose.tools.eq_(retval, 0)
+    assert retval == 0
     assert "Successful initialization of" in buf.read()
 
 
@@ -204,19 +204,19 @@ def run_update(repo, b2):
             force_recovery=False,
         )
 
-    nose.tools.eq_(len(sizes1), 1)
+    assert len(sizes1) == 1
     assert sizes1[repo] != 0
-    nose.tools.eq_(len(snaps1), 1)
+    assert len(snaps1) == 1
     assert "parent" not in snaps1[0]
 
     messages = log2.split("\n")[:-1]  # removes last end-of-line
 
-    assert messages[6].startswith("snapshot")
-    assert messages[6].endswith("saved")
+    assert messages[7].startswith("snapshot")
+    assert messages[7].endswith("saved")
 
-    assert messages[7].startswith("Applying Policy: keep")
+    assert messages[8].startswith("Applying Policy: keep")
 
-    assert SAMPLE_DIR1 in messages[11]
+    assert SAMPLE_DIR1 in messages[12]
 
 
 def test_update_local():
@@ -250,22 +250,22 @@ def run_update_recover(repo, b2):
             force_recovery=True,
         )
 
-    nose.tools.eq_(len(sizes1), 1)
+    assert len(sizes1) == 1
     assert sizes1[repo] != 0
-    nose.tools.eq_(len(snaps1), 1)
+    assert len(snaps1) == 1
     assert "parent" not in snaps1[0]
 
     messages = log2.split("\n")[:-1]  # removes last end-of-line
 
-    nose.tools.eq_(messages[0], "successfully removed locks")
-    nose.tools.eq_(messages[1], "counting files in repo")
-    assert messages[15].startswith("snapshot")
-    assert messages[15].endswith("saved")
-    nose.tools.eq_(messages[16], "counting files in repo")
-    nose.tools.eq_(messages[17], "building new index for repo")
-    nose.tools.eq_(messages[37], "done")
-    assert messages[38].startswith("Applying Policy: keep")
-    assert SAMPLE_DIR1 in messages[42]
+    assert messages[0] == "successfully removed locks"
+    assert messages[1] == "loading indexes..."
+    assert messages[17].startswith("snapshot")
+    assert messages[17].endswith("saved")
+    assert messages[18] == "loading indexes..."
+    assert messages[19] == "loading all snapshots..."
+    assert messages[35] == "done"
+    assert messages[36].startswith("Applying Policy: keep")
+    assert SAMPLE_DIR1 in messages[40]
 
 
 def test_update_recover():
@@ -308,10 +308,10 @@ def run_update_multiple(repo1, repo2, b2):
             force_recovery=False,
         )
 
-    nose.tools.eq_(len(sizes1), 2)
+    assert len(sizes1) == 2
     assert sizes1[repo1] != 0
     assert sizes1[repo2] != 0
-    nose.tools.eq_(len(snaps1), 2)
+    assert len(snaps1) == 2
     assert "parent" not in snaps1[0]
     assert "parent" not in snaps1[1]
 
@@ -319,28 +319,13 @@ def run_update_multiple(repo1, repo2, b2):
     messages1 = log2[:split_index].split("\n")
     messages2 = log2[split_index:].split("\n")
 
-    assert messages1[6].startswith(
-        "snapshot"
-    ), 'message "%s" does not ' 'start with "snapshot"' % (messages1[6],)
-    assert messages1[6].endswith(
-        "saved"
-    ), 'message "%s" does not ' 'end with "saved"' % (messages1[6],)
-    assert (
-        SAMPLE_DIR1 in messages1[11]
-    ), 'message "%s" does not ' 'contain "%s"' % (messages1[11], SAMPLE_DIR1)
+    assert messages1[7].startswith("snapshot")
+    assert messages1[7].endswith("saved")
+    assert SAMPLE_DIR1 in messages1[12]
 
-    assert messages2[6].startswith(
-        "snapshot"
-    ), 'message "%s" does not ' 'start with "snapshot"' % (messages2[6],)
-    assert messages2[6].endswith(
-        "saved"
-    ), 'message "%s" does not ' 'end with "saved"' % (messages2[6],)
-    assert (
-        SAMPLE_DIR2 in messages2[11]
-    ), 'message "%s" does not ' 'contain "%s"' % (
-        messages2[11],
-        SAMPLE_DIR2,
-    )
+    assert messages2[6].startswith("snapshot")
+    assert messages2[6].endswith("saved")
+    assert SAMPLE_DIR2 in messages2[11]
 
 
 def test_update_local_multiple():
@@ -419,7 +404,7 @@ def run_update_cmdline(repo, options):
             ]
         )
 
-    nose.tools.eq_(retval2, 0)
+    assert retval2 == 0
     assert "Successful update of" in buf.read()
 
 
@@ -452,16 +437,16 @@ def run_check(repo, b2):
             period=None,
         )
 
-    nose.tools.eq_(len(sizes1), 1)
+    assert len(sizes1) == 1
     assert sizes1[repo] != 0
-    nose.tools.eq_(len(snaps1), 1)
-    nose.tools.eq_(len(sizes2), 1)
+    assert len(snaps1) == 1
+    assert len(sizes2) == 1
     assert sizes2[repo] != 0
-    nose.tools.eq_(len(snaps2), 1)
-    nose.tools.eq_(snaps1, snaps2)
+    assert len(snaps2) == 1
+    assert snaps1 == snaps2
 
     messages = log2.split("\n")[:-1]  # removes last end-of-line
-    nose.tools.eq_(len(messages), 0)
+    assert len(messages) == 0
 
     assert "Successful check of 1 repository" in buf.read()
 
@@ -496,17 +481,17 @@ def run_check_alarm(repo, b2):
             period=None,
         )
 
-    nose.tools.eq_(len(sizes1), 1)
+    assert len(sizes1) == 1
     assert sizes1[repo] != 0
-    nose.tools.eq_(len(snaps1), 1)
-    nose.tools.eq_(len(sizes2), 1)
+    assert len(snaps1) == 1
+    assert len(sizes2) == 1
     assert sizes2[repo] != 0
-    nose.tools.eq_(len(snaps2), 1)
-    nose.tools.eq_(snaps1, snaps2)
+    assert len(snaps2) == 1
+    assert snaps1 == snaps2
 
     messages = log2.split("\n")[:-1]  # removes last end-of-line
 
-    nose.tools.eq_(len(messages), 0)
+    assert len(messages) == 0
 
     assert "ALARM condition (1 second) reached" in buf.read()
 
@@ -550,29 +535,29 @@ def run_check_multiple(repo1, repo2, b2):
             period=None,
         )
 
-    nose.tools.eq_(len(sizes1), 2)
+    assert len(sizes1) == 2
     assert sizes1[repo1] != 0
     assert sizes1[repo2] != 0
-    nose.tools.eq_(len(snaps1), 2)
-    nose.tools.eq_(len(sizes2), 2)
+    assert len(snaps1) == 2
+    assert len(sizes2) == 2
     assert sizes2[repo1] != 0
     assert sizes2[repo2] != 0
-    nose.tools.eq_(len(snaps2), 2)
-    nose.tools.eq_(snaps1, snaps2)
+    assert len(snaps2) == 2
+    assert snaps1 == snaps2
 
     messages = log2.split("\n")[:-1]  # removes last end-of-line
 
     messages1 = messages[: int(len(messages) / 2)]
     messages2 = messages[int(len(messages) / 2) :]
     if b2:
-        nose.tools.eq_(messages1[0], "Using https://api.backblazeb2.com")
+        assert messages1[0] == "Using https://api.backblazeb2.com"
         messages1 = messages1[1:]
     if b2:
-        nose.tools.eq_(messages2[0], "Using https://api.backblazeb2.com")
+        assert messages2[0] == "Using https://api.backblazeb2.com"
         messages2 = messages2[1:]
 
-    nose.tools.eq_(len(messages1), 0)
-    nose.tools.eq_(len(messages2), 0)
+    assert len(messages1) == 0
+    assert len(messages2) == 0
 
     assert "ALARM condition (1 second) reached" in buf.read()
 
@@ -651,7 +636,7 @@ def run_check_cmdline(repo, options):
             ]
         )
 
-    nose.tools.eq_(retval2, 0)
+    assert retval2 == 0
     assert "Successful check of" in buf.read()
 
 
@@ -688,7 +673,7 @@ def run_check_config(repo, options):
         retval1 = bake.main(["init", config.name])
         retval2 = bake.main(["check", config.name])
 
-    nose.tools.eq_(retval2, 0)
+    assert retval2 == 0
     assert "Successful check of" in buf.read()
 
 

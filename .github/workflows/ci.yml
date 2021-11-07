@@ -1,0 +1,32 @@
+name: ci
+
+on:  # Define here when your project will be tested
+  workflow_dispatch:  # this allows you to 'manually' launch the workflow
+
+jobs:
+  publish:
+    name: Test conda-build
+    runs-on: ubuntu-latest
+    steps:
+
+      # Action provided by GitHub to checkout code
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      # Action provided by 'conda-incubator' to setup conda env
+      - name: Setup miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: 'latest'
+          auto-update-conda: true
+          auto-activate-base: true
+          mamba-version: "*"
+          channels: anjos,conda-forge
+          channel-priority: true
+
+      - name: Build conda package
+        shell: bash -l {0}
+        run: |
+          mamba info -a
+          mamba install conda-build
+          conda build --python=3.9 conda

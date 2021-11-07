@@ -1,0 +1,23 @@
+diff --git a/pyproject.toml b/pyproject.toml
+new file mode 100644
+index 0000000..bc50d51
+--- /dev/null
++++ b/pyproject.toml
+@@ -0,0 +1,4 @@
++[build-system]
++requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
++
++[tool.setuptools_scm]
+diff --git a/setup.py b/setup.py
+index f9c1bbe..e841957 100644
+--- a/setup.py
++++ b/setup.py
+@@ -116,8 +116,6 @@ setup(
+                 'sphinxcontrib-plantuml', 'sadisplay'
+             ],
+     },
+-    setup_requires=['setuptools_scm<6.0'],  # setuptools_scm>=6.0 doesn't support Python 3.5
+-    use_scm_version=True,
+ 
+     # If there are data files included in your packages that need to be
+     # installed, specify them here.
