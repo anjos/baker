@@ -19,8 +19,8 @@ command line::
 
   $ conda create --override-channels -c anjos -c conda-forge -n baker python=x.y baker
 
-Where ``x.y`` can be only ``3.9``. Once the environment is installed, activate
-it to be able to call binaries::
+Where ``x.y`` should be ``3.8`` or higher. Once the environment is installed,
+activate it to be able to call binaries::
 
   $ source activate baker
 
