@@ -19,8 +19,8 @@ command line::
 
   $ conda create --override-channels -c anjos -c conda-forge -n baker python=x.y baker
 
-Where ``x.y`` should be ``3.8`` or higher. Once the environment is installed,
-activate it to be able to call binaries::
+Where ``x.y`` should be ``3.9``. Once the environment is installed, activate it
+to be able to call binaries::
 
   $ source activate baker
 
@@ -41,7 +41,7 @@ Development
 I advise you to install a Conda_-based environment for development with this
 command line::
 
-  $ conda env create -f dev.yml
+  $ conda env create -f dev.yml -n baker-dev
 
 
 Build
@@ -50,7 +50,7 @@ Build
 To build the project and make it ready to run, do::
 
   $ source activate baker-dev
-  $ buildout
+  (backer-dev) $ pip install -e .
 
 This command should leave you with a functional environment.
 
@@ -60,13 +60,13 @@ Testing
 
 To test the package, run the following::
 
-  $ ./bin/pytest -sv
+  $ pytest -sv ./baker
 
 
 If tests fail, it is possible test buckets are kept on your B2 account. To
 remove those (starting with ``baker-test-``), use the following command::
 
-  $ ./bin/remove-test-buckets
+  $ remove-test-buckets
 
 
 Conda Builds

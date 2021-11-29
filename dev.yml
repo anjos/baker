@@ -1,4 +1,3 @@
-name: baker-dev
 channels:
 - anjos
 - conda-forge
@@ -11,12 +10,5 @@ dependencies:
 - b2
 - restic
 - pytest
-# for bob.buildout
-- sphinx
-- sphinx_rtd_theme
-- pytest-cov
-- nose
 - ipdb
 - pip
-- pip:
-    - bob.buildout
