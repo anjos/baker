@@ -21,3 +21,4 @@ src/
 .DS_Store
 *.json
 ctstation/
+.envrc

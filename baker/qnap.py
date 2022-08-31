@@ -64,10 +64,10 @@ def api(session, server, url, verb="get", data=None, json=None, verify=False):
 
     """
 
-  url = server + '/container-station/api/v1' + url
-  logger.debug('%s %s', verb.upper(), url)
-  with no_ssl_warnings(verify):
-    return getattr(session, verb)(url, data=data, json=json, verify=verify)
+    url = server + '/container-station/api/v1' + url
+    logger.debug('%s %s', verb.upper(), url)
+    with no_ssl_warnings(verify):
+      return getattr(session, verb)(url, data=data, json=json, verify=verify)
 
 
 def login(server, username, password, verify=False):

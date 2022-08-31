@@ -15,7 +15,8 @@ def _delete_create(session, server, name, existing, options):
 
     retval = qnap.create_container(session, server, name, options)
     if options.get("autostart", True) == False:
-        qnap.stop_container(session, server, retval["id"])
+        if "id" in retval:
+            qnap.stop_container(session, server, retval["id"])
 
 
 def main():
@@ -36,9 +37,7 @@ def main():
     volumes = {
         "new": ["baker-cache:/cache"],
         "host": {
-            "/Documents": dict(bind="/documents", ro=True),
             "/Pictures": dict(bind="/pictures", ro=True),
-            "/Music": dict(bind="/music", ro=True),
         },
     }
 
